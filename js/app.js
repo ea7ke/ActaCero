@@ -3,31 +3,28 @@ let contratistas = {};
 
 window.addEventListener("load", async () => {
     try {
-        const fechaInput = document.getElementById("fecha");
-        if (fechaInput) {
-            fechaInput.value = new Date().toISOString().split("T")[0];
-        }
         const hoy = new Date().toISOString().split("T")[0];
 
-        const fechaInput = document.getElementById("fecha");
-        if (fechaInput && !fechaInput.value) {
-            fechaInput.value = hoy;
+        const campoFecha = document.getElementById("fecha");
+        if (campoFecha && !campoFecha.value) {
+            campoFecha.value = hoy;
         }
 
-        const fechaInicioInput = document.getElementById("fechaInicio");
-        if (fechaInicioInput && !fechaInicioInput.value) {
-            fechaInicioInput.value = hoy;
+        const campoFechaInicio = document.getElementById("fechaInicio");
+        if (campoFechaInicio && !campoFechaInicio.value) {
+            campoFechaInicio.value = hoy;
         }
 
-const fechaFinInput = document.getElementById("fechaFin");
-if (fechaFinInput && !fechaFinInput.value) {
-    fechaFinInput.value = hoy;
-}
+        const campoFechaFin = document.getElementById("fechaFin");
+        if (campoFechaFin && !campoFechaFin.value) {
+            campoFechaFin.value = hoy;
+        }
 
-        const config = await fetch("/api/configuracion").then(r => {
-            if (!r.ok) throw new Error(`Error configuración: ${r.status}`);
-            return r.json();
-        });
+        const configRes = await fetch("/api/configuracion");
+        if (!configRes.ok) {
+            throw new Error(`Configuración: HTTP ${configRes.status}`);
+        }
+        const config = await configRes.json();
 
         const tecnico = document.getElementById("tecnico");
         const unidad = document.getElementById("unidad");
@@ -37,15 +34,17 @@ if (fechaFinInput && !fechaFinInput.value) {
         if (unidad) unidad.value = config.unidadSolicitante || "";
         if (jefeInstalacion) jefeInstalacion.value = config.jefeInstalacion || "";
 
-        subestaciones = await fetch("/api/subestaciones").then(r => {
-            if (!r.ok) throw new Error(`Error subestaciones: ${r.status}`);
-            return r.json();
-        });
+        const subRes = await fetch("/api/subestaciones");
+        if (!subRes.ok) {
+            throw new Error(`Subestaciones: HTTP ${subRes.status}`);
+        }
+        subestaciones = await subRes.json();
 
-        contratistas = await fetch("/api/contratistas").then(r => {
-            if (!r.ok) throw new Error(`Error contratistas: ${r.status}`);
-            return r.json();
-        });
+        const contratasRes = await fetch("/api/contratistas");
+        if (!contratasRes.ok) {
+            throw new Error(`Contratistas: HTTP ${contratasRes.status}`);
+        }
+        contratistas = await contratasRes.json();
 
         cargarSubestaciones();
         cargarEmpresas();
@@ -124,7 +123,7 @@ function cambiarEmpresa() {
 
     if (!empresa || !contratistas[empresa]) return;
 
-    contratistas[empresa].forEach(persona => {
+    (contratistas[empresa] || []).forEach(persona => {
         const option = document.createElement("option");
         option.value = persona;
         option.textContent = persona;
@@ -141,18 +140,18 @@ function generarActa() {
         subestacion: document.getElementById("subestacion")?.value || "",
         parque: document.getElementById("parque")?.value || "",
         posicion: document.getElementById("posicion")?.value || "",
+        linea: document.getElementById("linea")?.value || "",
+        soporte: document.getElementById("soporte")?.value || "",
+        apertura: document.getElementById("apertura")?.value || "",
         empresa: document.getElementById("empresa")?.value || "",
         representante: document.getElementById("representante")?.value || "",
         tecnico: document.getElementById("tecnico")?.value || "",
         jefeInstalacion: document.getElementById("jefeInstalacion")?.value || "",
         unidad: document.getElementById("unidad")?.value || "",
         trabajo: document.getElementById("trabajo")?.value || "",
-        descripcion: document.getElementById("descripcion")?.value || "",
         textoContratista: document.getElementById("textoContratista")?.value || "",
-        textoJI: document.getElementById("textoJI")?.value || "",
-        linea: document.getElementById("linea")?.value || "",
-        soporte: document.getElementById("soporte")?.value || "",
-        apertura: document.getElementById("apertura")?.value || ""
+        descripcion: document.getElementById("descripcion")?.value || "",
+        textoJI: document.getElementById("textoJI")?.value || ""
     };
 
     localStorage.setItem("actaCero", JSON.stringify(datos));
