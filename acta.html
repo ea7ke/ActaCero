@@ -71,6 +71,13 @@
             <div class="linea">
                 <strong>Nº LCL:</strong> <span id="lcl"></span>
             </div>
+            
+            <div class="linea">
+                <strong>FECHA INICIO:</strong> <span id="fechaInicioTrabajo"></span>
+                <span class="espacio"></span>
+                <strong>FECHA FINAL:</strong> <span id="fechaFinTrabajo"></span>
+            </div>
+
 
             <div class="linea">
                 <strong>SUBESTACIÓN:</strong> <span id="subestacion"></span>
@@ -252,6 +259,14 @@ function actualizarLineasSegunContenido(idTexto) {
     }
 }
 
+function formatearFechaVisual(fechaISO) {
+    if (!fechaISO) return "";
+    const partes = fechaISO.split("-");
+    if (partes.length !== 3) return fechaISO;
+    return `${partes[2]}-${partes[1]}-${partes[0]}`;
+}
+
+    
 poner("lcl", datos.lcl);
 poner("lcl2", datos.lcl);
 poner("subestacion", datos.subestacion);
@@ -272,6 +287,9 @@ poner("textoJI", datos.textoJI);
 poner("firmaTecnicoNombre", datos.tecnico);
 poner("representanteFirma", datos.representante);
 poner("firmaJefeNombre", datos.jefeInstalacion);
+poner("fechaInicioTrabajo", formatearFechaVisual(datos.fechaInicio));
+poner("fechaFinTrabajo", formatearFechaVisual(datos.fechaFin));
+
 
 const fecha = formatearFecha(datos.fecha);
 poner("dia", fecha.dia);
