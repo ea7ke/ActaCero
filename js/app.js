@@ -135,6 +135,8 @@ function cambiarEmpresa() {
 function generarActa() {
     const datos = {
         fecha: document.getElementById("fecha")?.value || "",
+        fechaInicio: document.getElementById("fechaInicio")?.value || "",
+        fechaFin: document.getElementById("fechaFin")?.value || "",
         lcl: document.getElementById("lcl")?.value || "",
         subestacion: document.getElementById("subestacion")?.value || "",
         parque: document.getElementById("parque")?.value || "",
