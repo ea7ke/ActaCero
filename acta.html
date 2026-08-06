@@ -212,11 +212,12 @@
         <div class="caja-contenido caja-con-lineas">
             <div id="textoJI" class="texto-libre"></div>
 
-            <div class="bloque-firma">
-                <div class="rol-firma">El Jefe de la Instalación</div>
-                <img src="img/firma-jefe.png" alt="Firma jefe instalación" class="firma-img">
-                <div class="firmado-texto">Firmado: <span id="firmaJefeNombre"></span></div>
-            </div>
+        <div class="bloque-firma">
+            <div class="rol-firma">El Técnico U. Solicitante<br>P.O. del Jefe de la Instalación</div>
+            <img src="img/firma-arturo.png" alt="Firma técnico unidad solicitante" class="firma-img">
+            <div class="firmado-texto">Firmado: <span id="firmaTecnicoPO"></span></div>
+        </div>
+
         </div>
     </section>
 
@@ -286,9 +287,11 @@ poner("textoContratista", datos.textoContratista);
 poner("textoJI", datos.textoJI);
 poner("firmaTecnicoNombre", datos.tecnico);
 poner("representanteFirma", datos.representante);
-poner("firmaJefeNombre", datos.jefeInstalacion);
+poner("firmaTecnicoPO", datos.tecnico);
 poner("fechaInicioTrabajo", formatearFechaVisual(datos.fechaInicio));
 poner("fechaFinTrabajo", formatearFechaVisual(datos.fechaFin));
+
+
 
 
 const fecha = formatearFecha(datos.fecha);
