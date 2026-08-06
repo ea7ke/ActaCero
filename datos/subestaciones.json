@@ -1,0 +1,36 @@
+{
+  "AEROPUER": {
+    "parques": [
+      "15 kV",
+      "132 kV"
+    ],
+    "posiciones": [
+      "1T132/15",
+      "2T132/15",
+      "621",
+      "SANTACRUZ2",
+      "WISAL"
+    ]
+  },
+  "AGRIBETI": {
+    "parques": [
+      "15 kV",
+      "66 kV"
+    ],
+    "posiciones": [
+      "121",
+      "122",
+      "123",
+      "1T 66/15",
+      "2T 66/15",
+      "ALCALRIO",
+      "BC1",
+      "GR3",
+      "RES_4183_E",
+      "RES_4183_F",
+      "RES_4183_G",
+      "VEREDA",
+      "ZAHURDONES"
+    ]
+  }
+}
