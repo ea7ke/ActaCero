@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Acta Cero</title>
+    <link rel="stylesheet" href="css/estilos.css">
+    <script src="js/app.js" defer></script>
+</head>
+<body>
+
+<div class="contenedor">
+
+    <h1>ACTA CERO</h1>
+
+	<div class="acciones-superiores">
+		<a class="btn-secundario" href="/admin.html">Administración</a>
+	</div>
+    <div class="fila">
+        <div class="campo">
+            <label for="fecha">Fecha</label>
+            <input type="date" id="fecha">
+        </div>
+
+        <div class="campo">
+            <label for="lcl">Nº LCL</label>
+            <input type="text" id="lcl">
+        </div>
+    </div>
+
+    <div class="fila">
+        <div class="campo">
+            <label for="subestacion">Subestación</label>
+            <select id="subestacion" onchange="cambiarSubestacion()">
+                <option value="">Seleccione...</option>
+            </select>
+        </div>
+
+        <div class="campo">
+            <label for="parque">Parque</label>
+            <select id="parque"></select>
+        </div>
+    </div>
+
+    <div class="fila">
+        <div class="campo">
+            <label for="posicion">Posición</label>
+            <select id="posicion"></select>
+        </div>
+    </div>
+
+    <div class="fila">
+        <div class="campo">
+            <label for="linea">Línea</label>
+            <input type="text" id="linea">
+        </div>
+
+        <div class="campo">
+            <label for="soporte">Soporte</label>
+            <input type="text" id="soporte">
+        </div>
+    </div>
+
+    <div class="fila">
+        <div class="campo">
+            <label for="apertura">Apertura</label>
+            <input type="text" id="apertura">
+        </div>
+    </div>
+
+    <div class="fila">
+        <div class="campo">
+            <label for="empresa">Empresa Contratista</label>
+            <select id="empresa" onchange="cambiarEmpresa()">
+                <option value="">Seleccione...</option>
+            </select>
+        </div>
+
+        <div class="campo">
+            <label for="representante">Representante</label>
+            <select id="representante"></select>
+        </div>
+    </div>
+
+    <div class="fila">
+        <div class="campo">
+            <label for="tecnico">Técnico Unidad Solicitante</label>
+            <input id="tecnico" readonly>
+        </div>
+
+        <div class="campo">
+            <label for="jefeInstalacion">Jefe Instalación</label>
+            <input id="jefeInstalacion" readonly>
+        </div>
+    </div>
+
+    <div class="fila">
+        <div class="campo">
+            <label for="unidad">Unidad Solicitante</label>
+            <input id="unidad" readonly>
+        </div>
+    </div>
+
+    <div class="fila">
+        <div class="campo">
+            <label for="trabajo">Trabajo</label>
+            <textarea id="trabajo"></textarea>
+        </div>
+    </div>
+    <div class="fila">
+        <div class="campo">
+            <label for="descripcion">Definición del Trabajo</label>
+            <textarea id="descripcion"></textarea>
+        </div>
+    </div>
+    <div class="fila">
+        <div class="campo">
+            <label for="textoContratista">EMPRESA CONTRATISTA (Método de trabajo / recursos)</label>
+            <textarea id="textoContratista"></textarea>
+        </div>
+    </div>
+
+
+
+    <div class="fila">
+        <div class="campo">
+            <label for="textoJI">Validación del Jefe de Instalación</label>
+            <textarea id="textoJI"></textarea>
+        </div>
+    </div>
+
+    <button type="button" onclick="generarActa()">Vista previa Acta</button>
+
+</div>
+
+</body>
+</html>

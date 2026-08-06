@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Administración Acta Cero</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <script src="js/admin.js" defer></script>
+</head>
+<body>
+    <div class="contenedor">
+        <h1>Administración</h1>
+<div class="acciones-superiores">
+    <a class="btn-secundario" href="/">Ir al formulario</a>
+</div>
+        <section>
+            <h2>Configuración</h2>
+            <div class="fila-admin fila-config">
+                <input id="cfgTecnico" placeholder="Técnico solicitante">
+                <input id="cfgUnidad" placeholder="Unidad solicitante">
+                <input id="cfgJefe" placeholder="Jefe instalación">
+                <button type="button" onclick="guardarConfiguracion()">Guardar</button>
+            </div>
+        </section>
+
+        <section>
+            <div class="cabecera-seccion">
+                <h2>Subestaciones</h2>
+                <div class="acciones-inline">
+                    <input id="nuevaSubestacion" placeholder="Nueva subestación">
+                    <button type="button" onclick="crearSubestacion()">Añadir</button>
+                </div>
+            </div>
+
+            <div class="layout-master-detail">
+                <div class="panel-lista">
+                    <input id="filtroSubestaciones" placeholder="Buscar subestación..." oninput="renderSubestacionesLista()">
+                    <div id="listaSubestaciones" class="lista-scroll"></div>
+                </div>
+
+                <div class="panel-detalle">
+                    <div id="detalleSubestacion" class="detalle-vacio">
+                        Selecciona una subestación para editarla.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <div class="cabecera-seccion">
+                <h2>Contratistas</h2>
+                <div class="acciones-inline">
+                    <input id="nuevoContratista" placeholder="Nueva contrata">
+                    <button type="button" onclick="crearContratista()">Añadir</button>
+                </div>
+            </div>
+
+            <div class="layout-master-detail">
+                <div class="panel-lista">
+                    <input id="filtroContratistas" placeholder="Buscar contrata..." oninput="renderContratistasLista()">
+                    <div id="listaContratistas" class="lista-scroll"></div>
+                </div>
+
+                <div class="panel-detalle">
+                    <div id="detalleContratista" class="detalle-vacio">
+                        Selecciona una contrata para editarla.
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+</body>
+</html>
