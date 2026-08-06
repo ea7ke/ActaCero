@@ -1,0 +1,291 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 24px;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #eef2f6;
+    color: #1c2733;
+}
+
+.contenedor {
+    max-width: 1280px;
+    margin: 0 auto;
+}
+
+h1 {
+    margin: 0 0 24px 0;
+    color: #003f7d;
+    text-align: center;
+    font-size: 38px;
+}
+
+h2 {
+    margin: 0;
+    color: #0b4f8a;
+    font-size: 22px;
+}
+
+h3 {
+    margin: 0;
+    font-size: 22px;
+    color: #1e2f3f;
+}
+
+h4 {
+    margin: 0 0 10px 0;
+    font-size: 15px;
+    color: #35506b;
+}
+
+.panel {
+    background: #fff;
+    border-radius: 14px;
+    padding: 26px 28px;
+    margin-bottom: 26px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+input,
+button,
+select,
+textarea {
+    font: inherit;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #c8d2dc;
+    border-radius: 8px;
+    background: #fff;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #2f6fad;
+    box-shadow: 0 0 0 3px rgba(47, 111, 173, 0.14);
+}
+
+button {
+    border: none;
+    border-radius: 8px;
+    background: #005ea8;
+    color: #fff;
+    padding: 12px 18px;
+    cursor: pointer;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+button:hover {
+    background: #004983;
+}
+
+.btn-peligro {
+    background: #c0392b;
+}
+
+.btn-peligro:hover {
+    background: #a93226;
+}
+
+.btn-mini {
+    padding: 6px 10px;
+    font-size: 13px;
+}
+
+.fila-admin {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.fila-config input {
+    flex: 1;
+}
+
+.cabecera-seccion {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 18px;
+}
+
+.acciones-superior {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    min-width: 420px;
+}
+
+.acciones-superior input {
+    flex: 1;
+}
+
+.layout-master-detail {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 20px;
+    align-items: start;
+}
+
+.panel-lista,
+.panel-detalle {
+    min-height: 420px;
+}
+
+.panel-lista {
+    border: 1px solid #d7e0e8;
+    border-radius: 12px;
+    padding: 14px;
+    background: #f8fafc;
+}
+
+.panel-detalle {
+    border: 1px solid #d7e0e8;
+    border-radius: 12px;
+    padding: 16px;
+    background: #fcfdff;
+}
+
+.lista-scroll {
+    margin-top: 12px;
+    max-height: 520px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.item-lista {
+    width: 100%;
+    text-align: left;
+    background: #fff;
+    color: #1c2733;
+    border: 1px solid #d5dee8;
+    border-radius: 8px;
+    padding: 12px 14px;
+    font-weight: 600;
+}
+
+.item-lista:hover {
+    background: #eef5fb;
+    border-color: #9abddd;
+    color: #0b4f8a;
+}
+
+.item-lista.activo {
+    background: #dfeefe;
+    border-color: #6aa3da;
+    color: #0b4f8a;
+}
+
+.detalle-vacio {
+    color: #5f6f7f;
+    font-style: italic;
+    padding: 6px 2px;
+}
+
+.detalle-card {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.detalle-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #e4ebf2;
+}
+
+.bloque-admin {
+    padding-top: 2px;
+}
+
+.chips-lista {
+    list-style: none;
+    margin: 0 0 14px 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.chip-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #edf4fb;
+    border: 1px solid #cfe0f0;
+    border-radius: 999px;
+    padding: 8px 10px 8px 14px;
+}
+
+.chip-item span {
+    font-size: 14px;
+    color: #1f3347;
+}
+
+.chip-item .btn-mini {
+    border-radius: 999px;
+    min-width: 28px;
+    height: 28px;
+    padding: 0;
+    line-height: 28px;
+    text-align: center;
+}
+
+@media (max-width: 980px) {
+    .layout-master-detail {
+        grid-template-columns: 1fr;
+    }
+
+    .cabecera-seccion {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .acciones-superior {
+        min-width: 0;
+        width: 100%;
+    }
+}
+
+@media (max-width: 700px) {
+    body {
+        padding: 16px;
+    }
+
+    .panel {
+        padding: 18px;
+    }
+
+    .fila-admin,
+    .fila-config,
+    .acciones-superior,
+    .detalle-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .chip-item {
+        width: 100%;
+        justify-content: space-between;
+        border-radius: 12px;
+    }
+
+    h1 {
+        font-size: 30px;
+    }
+}
