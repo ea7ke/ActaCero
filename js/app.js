@@ -7,6 +7,22 @@ window.addEventListener("load", async () => {
         if (fechaInput) {
             fechaInput.value = new Date().toISOString().split("T")[0];
         }
+        const hoy = new Date().toISOString().split("T")[0];
+
+        const fechaInput = document.getElementById("fecha");
+        if (fechaInput && !fechaInput.value) {
+            fechaInput.value = hoy;
+        }
+
+        const fechaInicioInput = document.getElementById("fechaInicio");
+        if (fechaInicioInput && !fechaInicioInput.value) {
+            fechaInicioInput.value = hoy;
+        }
+
+const fechaFinInput = document.getElementById("fechaFin");
+if (fechaFinInput && !fechaFinInput.value) {
+    fechaFinInput.value = hoy;
+}
 
         const config = await fetch("/api/configuracion").then(r => {
             if (!r.ok) throw new Error(`Error configuración: ${r.status}`);
