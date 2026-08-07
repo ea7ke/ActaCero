@@ -244,9 +244,9 @@ li {
     background-image: repeating-linear-gradient(
         to bottom,
         transparent 0,
-        transparent 20px,
-        #a7a7a7 20px,
-        transparent 21px
+        transparent 18px,
+        #a7a7a7 18px,
+        transparent 19px
     );
 }
 
@@ -255,11 +255,11 @@ li {
 }
 
 .caja-media .caja-contenido {
-    min-height: 150px;
+    min-height: 130px;
 }
 
 .caja-grande .caja-contenido {
-    min-height: 220px;
+    min-height: 1800px;
 }
 
 .texto-libre {
@@ -282,7 +282,7 @@ li {
     position: relative;
     z-index: 3;
     background: #fff;
-    margin-top: 12px;
+    margin-top: 6px;
     padding-left: 20px;
 }
 
@@ -311,8 +311,8 @@ li {
     width: 150px;
     border-top: 1px solid #000;
     margin-left: auto;
-    margin-top: 18px;
-    margin-bottom: 6px;
+    margin-top: 10px;
+    margin-bottom: 4px;
     background: #fff;
 }
 
