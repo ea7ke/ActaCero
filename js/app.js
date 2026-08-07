@@ -25,14 +25,19 @@ window.addEventListener("load", async () => {
             throw new Error(`Configuración: HTTP ${configRes.status}`);
         }
         const config = await configRes.json();
+		window.__configuracionActual = config;
+
 
         const tecnico = document.getElementById("tecnico");
         const unidad = document.getElementById("unidad");
         const jefeInstalacion = document.getElementById("jefeInstalacion");
+		const tecnicoConfig = config.tecnicoSolicitante || {};
+		const jefeConfig = config.jefeInstalacion || {};
 
-        if (tecnico) tecnico.value = config.tecnicoSolicitante || "";
-        if (unidad) unidad.value = config.unidadSolicitante || "";
-        if (jefeInstalacion) jefeInstalacion.value = config.jefeInstalacion || "";
+		if (tecnico) tecnico.value = tecnicoConfig.nombre || "";
+		if (unidad) unidad.value = config.unidadSolicitante || "";
+		if (jefeInstalacion) jefeInstalacion.value = jefeConfig.nombre || "";
+
 
         const subRes = await fetch("/api/subestaciones");
         if (!subRes.ok) {
@@ -132,6 +137,30 @@ function cambiarEmpresa() {
 }
 
 function generarActa() {
+    const tecnicoConfig = {
+        nombre: document.getElementById("tecnico")?.value || "",
+        firma: "",
+        usarFirma: false
+    };
+
+    const jefeConfig = {
+        nombre: document.getElementById("jefeInstalacion")?.value || "",
+        firma: "",
+        usarFirma: false
+    };
+
+    const datosConfig = window.__configuracionActual || {};
+
+    if (datosConfig.tecnicoSolicitante) {
+        tecnicoConfig.firma = datosConfig.tecnicoSolicitante.firma || "";
+        tecnicoConfig.usarFirma = !!datosConfig.tecnicoSolicitante.usarFirma;
+    }
+
+    if (datosConfig.jefeInstalacion) {
+        jefeConfig.firma = datosConfig.jefeInstalacion.firma || "";
+        jefeConfig.usarFirma = !!datosConfig.jefeInstalacion.usarFirma;
+    }
+
     const datos = {
         fecha: document.getElementById("fecha")?.value || "",
         fechaInicio: document.getElementById("fechaInicio")?.value || "",
@@ -146,7 +175,11 @@ function generarActa() {
         empresa: document.getElementById("empresa")?.value || "",
         representante: document.getElementById("representante")?.value || "",
         tecnico: document.getElementById("tecnico")?.value || "",
+        tecnicoFirma: tecnicoConfig.firma,
+        tecnicoUsarFirma: tecnicoConfig.usarFirma,
         jefeInstalacion: document.getElementById("jefeInstalacion")?.value || "",
+        jefeFirma: jefeConfig.firma,
+        jefeUsarFirma: jefeConfig.usarFirma,
         unidad: document.getElementById("unidad")?.value || "",
         trabajo: document.getElementById("trabajo")?.value || "",
         textoContratista: document.getElementById("textoContratista")?.value || "",
@@ -157,3 +190,4 @@ function generarActa() {
     localStorage.setItem("actaCero", JSON.stringify(datos));
     window.open("/acta.html", "_blank");
 }
+

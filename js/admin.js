@@ -23,20 +23,38 @@ async function cargarConfiguracion() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         configuracion = await res.json();
 
-        document.getElementById("cfgTecnico").value = configuracion.tecnicoSolicitante || "";
+        const tecnico = configuracion.tecnicoSolicitante || {};
+        const jefe = configuracion.jefeInstalacion || {};
+
+        document.getElementById("cfgTecnicoNombre").value = tecnico.nombre || "";
+        document.getElementById("cfgTecnicoFirma").value = tecnico.firma || "";
+        document.getElementById("cfgTecnicoUsarFirma").checked = !!tecnico.usarFirma;
+
         document.getElementById("cfgUnidad").value = configuracion.unidadSolicitante || "";
-        document.getElementById("cfgJefe").value = configuracion.jefeInstalacion || "";
+
+        document.getElementById("cfgJefeNombre").value = jefe.nombre || "";
+        document.getElementById("cfgJefeFirma").value = jefe.firma || "";
+        document.getElementById("cfgJefeUsarFirma").checked = !!jefe.usarFirma;
     } catch (error) {
         console.error(error);
         alert(`No se pudo cargar la configuración: ${error.message}`);
     }
 }
 
+
 async function guardarConfiguracion() {
     const data = {
-        tecnicoSolicitante: document.getElementById("cfgTecnico").value.trim(),
+        tecnicoSolicitante: {
+            nombre: document.getElementById("cfgTecnicoNombre").value.trim(),
+            firma: document.getElementById("cfgTecnicoFirma").value.trim(),
+            usarFirma: document.getElementById("cfgTecnicoUsarFirma").checked
+        },
         unidadSolicitante: document.getElementById("cfgUnidad").value.trim(),
-        jefeInstalacion: document.getElementById("cfgJefe").value.trim()
+        jefeInstalacion: {
+            nombre: document.getElementById("cfgJefeNombre").value.trim(),
+            firma: document.getElementById("cfgJefeFirma").value.trim(),
+            usarFirma: document.getElementById("cfgJefeUsarFirma").checked
+        }
     };
 
     try {
@@ -47,14 +65,18 @@ async function guardarConfiguracion() {
         });
 
         const json = await res.json();
-        if (!res.ok || !json.ok) throw new Error(json.error || "No se pudo guardar");
+
+        if (!res.ok || !json.ok) {
+            throw new Error(json.error || "No se pudo guardar la configuración");
+        }
 
         alert("Configuración guardada.");
     } catch (error) {
-        console.error(error);
+        console.error("Error guardando configuración:", error);
         alert(error.message);
     }
 }
+
 
 async function cargarSubestaciones() {
     try {
