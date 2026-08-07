@@ -178,11 +178,13 @@
         <div class="caja-contenido caja-con-lineas">
             <div id="descripcionTrabajo" class="texto-libre"></div>
 
-            <div class="bloque-firma">
-                <div class="rol-firma">El Técnico U. Solicitante</div>
-                <img src="img/firma-arturo.png" alt="Firma técnico" class="firma-img">
-                <div class="firmado-texto">Firmado: <span id="firmaTecnicoNombre"></span></div>
-            </div>
+			<div class="bloque-firma">
+				<div class="rol-firma">El Técnico U. Solicitante</div>
+				<img id="firmaTecnicoImg" src="" alt="Firma técnico" class="firma-img">
+				<div class="firma-linea-manual" id="firmaTecnicoManual"></div>
+				<div class="firmado-texto">Firmado: <span id="firmaTecnicoNombre"></span></div>
+			</div>
+
         </div>
     </section>
 
@@ -195,11 +197,12 @@
         <div class="caja-contenido caja-con-lineas">
             <div id="textoContratista" class="texto-libre"></div>
 
-            <div class="bloque-firma">
-                <div class="rol-firma">El Repr. Emp. Contratista</div>
-                <div class="firma-linea"></div>
-                <div class="firmado-texto">Firmado: <span id="representanteFirma"></span></div>
-            </div>
+			<div class="bloque-firma">
+				<div class="rol-firma">El Repr. Emp. Contratista</div>
+				<div class="firma-linea"></div>
+				<div class="firmado-texto">Firmado: <span id="representanteFirma"></span></div>
+			</div>
+		
         </div>
     </section>
 
@@ -212,11 +215,13 @@
         <div class="caja-contenido caja-con-lineas">
             <div id="textoJI" class="texto-libre"></div>
 
-        <div class="bloque-firma">
-            <div class="rol-firma">El Técnico U. Solicitante<br>P.O. del Jefe de la Instalación</div>
-            <img src="img/firma-arturo.png" alt="Firma técnico unidad solicitante" class="firma-img">
-            <div class="firmado-texto">Firmado: <span id="firmaTecnicoPO"></span></div>
-        </div>
+			<div class="bloque-firma">
+				<div class="rol-firma">El Técnico U. Solicitante<br>P.O. del Jefe de la Instalación</div>
+				<img id="firmaTecnicoPOImg" src="" alt="Firma técnico unidad solicitante" class="firma-img">
+				<div class="firma-linea-manual" id="firmaTecnicoPOManual"></div>
+				<div class="firmado-texto">Firmado: <span id="firmaTecnicoPO"></span></div>
+			</div>
+
 
         </div>
     </section>
@@ -267,6 +272,23 @@ function formatearFechaVisual(fechaISO) {
     return `${partes[2]}-${partes[1]}-${partes[0]}`;
 }
 
+function configurarFirma(imgId, lineaId, usarFirma, rutaFirma) {
+    const img = document.getElementById(imgId);
+    const linea = document.getElementById(lineaId);
+
+    if (!img || !linea) return;
+
+    if (usarFirma && rutaFirma) {
+        img.src = rutaFirma;
+        img.classList.remove("firma-oculta");
+        linea.style.display = "none";
+    } else {
+        img.removeAttribute("src");
+        img.classList.add("firma-oculta");
+        linea.style.display = "block";
+    }
+}
+
     
 poner("lcl", datos.lcl);
 poner("lcl2", datos.lcl);
@@ -302,6 +324,9 @@ poner("anio", fecha.anio);
 actualizarLineasSegunContenido("descripcionTrabajo");
 actualizarLineasSegunContenido("textoContratista");
 actualizarLineasSegunContenido("textoJI");
+configurarFirma("firmaTecnicoImg", "firmaTecnicoManual", datos.tecnicoUsarFirma, datos.tecnicoFirma);
+configurarFirma("firmaTecnicoPOImg", "firmaTecnicoPOManual", datos.tecnicoUsarFirma, datos.tecnicoFirma);
+
 </script>
 
 </body>

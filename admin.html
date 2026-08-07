@@ -12,15 +12,54 @@
 <div class="acciones-superiores">
     <a class="btn-secundario" href="/">Ir al formulario</a>
 </div>
-        <section>
-            <h2>Configuración</h2>
-            <div class="fila-admin fila-config">
-                <input id="cfgTecnico" placeholder="Técnico solicitante">
-                <input id="cfgUnidad" placeholder="Unidad solicitante">
-                <input id="cfgJefe" placeholder="Jefe instalación">
-                <button type="button" onclick="guardarConfiguracion()">Guardar</button>
-            </div>
-        </section>
+<section>
+    <h2>Configuración</h2>
+
+    <div class="bloque-config">
+        <h3>Técnico Unidad Solicitante</h3>
+
+        <div class="fila-admin">
+            <input id="cfgTecnicoNombre" placeholder="Nombre del técnico">
+            <input id="cfgTecnicoFirma" placeholder="Ruta firma técnico (ej: img/firma-arturo.png)">
+        </div>
+
+        <div class="fila-check">
+            <label class="check-label">
+                <input type="checkbox" id="cfgTecnicoUsarFirma">
+                Usar firma automática del técnico
+            </label>
+        </div>
+    </div>
+
+    <div class="bloque-config">
+        <h3>Unidad solicitante</h3>
+
+        <div class="fila-admin">
+            <input id="cfgUnidad" placeholder="Unidad solicitante">
+        </div>
+    </div>
+
+    <div class="bloque-config">
+        <h3>Jefe de Instalación</h3>
+
+        <div class="fila-admin">
+            <input id="cfgJefeNombre" placeholder="Nombre del jefe">
+            <input id="cfgJefeFirma" placeholder="Ruta firma jefe (ej: img/firma-jefe.png)">
+        </div>
+
+        <div class="fila-check">
+            <label class="check-label">
+                <input type="checkbox" id="cfgJefeUsarFirma">
+                Usar firma automática del jefe
+            </label>
+        </div>
+    </div>
+
+    <div class="fila-admin">
+        <button type="button" onclick="guardarConfiguracion()">Guardar configuración</button>
+    </div>
+</section>
+
 
         <section>
             <div class="cabecera-seccion">

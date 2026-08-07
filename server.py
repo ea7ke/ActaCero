@@ -66,25 +66,46 @@ def acta_page():
 @app.route("/api/configuracion", methods=["GET"])
 def get_configuracion():
     data = read_json(CONFIG_FILE, default={
-        "tecnicoSolicitante": "",
+        "tecnicoSolicitante": {
+            "nombre": "",
+            "firma": "",
+            "usarFirma": False
+        },
         "unidadSolicitante": "",
-        "jefeInstalacion": ""
+        "jefeInstalacion": {
+            "nombre": "",
+            "firma": "",
+            "usarFirma": False
+        }
     })
     return jsonify(data)
+
 
 
 @app.route("/api/configuracion", methods=["POST"])
 def save_configuracion():
     data = request.get_json(silent=True) or {}
 
+    tecnico = data.get("tecnicoSolicitante", {}) or {}
+    jefe = data.get("jefeInstalacion", {}) or {}
+
     payload = {
-        "tecnicoSolicitante": str(data.get("tecnicoSolicitante", "")).strip(),
+        "tecnicoSolicitante": {
+            "nombre": str(tecnico.get("nombre", "")).strip(),
+            "firma": str(tecnico.get("firma", "")).strip(),
+            "usarFirma": bool(tecnico.get("usarFirma", False))
+        },
         "unidadSolicitante": str(data.get("unidadSolicitante", "")).strip(),
-        "jefeInstalacion": str(data.get("jefeInstalacion", "")).strip()
+        "jefeInstalacion": {
+            "nombre": str(jefe.get("nombre", "")).strip(),
+            "firma": str(jefe.get("firma", "")).strip(),
+            "usarFirma": bool(jefe.get("usarFirma", False))
+        }
     }
 
     write_json(CONFIG_FILE, payload)
     return jsonify({"ok": True, "data": payload})
+
 
 
 # ---------------- SUBESTACIONES ----------------
