@@ -289,3 +289,28 @@ button:hover {
         font-size: 30px;
     }
 }
+
+.bloque-config {
+    border: 1px solid #d6dee7;
+    border-radius: 10px;
+    padding: 16px;
+    margin-bottom: 16px;
+    background: #fbfcfd;
+}
+
+.fila-check {
+    margin-top: 10px;
+}
+
+.check-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 600;
+    color: #1e2f3f;
+}
+
+.check-label input[type="checkbox"] {
+    width: auto;
+    transform: scale(1.1);
+}
