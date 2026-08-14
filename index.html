@@ -12,9 +12,10 @@
 
     <h1>ACTA CERO</h1>
 
-	<div class="acciones-superiores">
-		<a class="btn-secundario" href="/admin.html">Administración</a>
-	</div>
+    <div class="acciones-superiores">
+        <a class="btn-secundario" href="/admin.html">Administración</a>
+    </div>
+
     <div class="fila">
         <div class="campo">
             <label for="fecha">Fecha</label>
@@ -26,17 +27,18 @@
             <input type="text" id="lcl">
         </div>
     </div>
-<div class="fila">
-    <div class="campo">
-        <label for="fechaInicio">Fecha inicio del trabajo</label>
-        <input type="date" id="fechaInicio">
-    </div>
 
-    <div class="campo">
-        <label for="fechaFin">Fecha final del trabajo</label>
-        <input type="date" id="fechaFin">
+    <div class="fila">
+        <div class="campo">
+            <label for="fechaInicio">Fecha inicio del trabajo</label>
+            <input type="date" id="fechaInicio">
+        </div>
+
+        <div class="campo">
+            <label for="fechaFin">Fecha final del trabajo</label>
+            <input type="date" id="fechaFin">
+        </div>
     </div>
-</div>
 
     <div class="fila">
         <div class="campo">
@@ -95,16 +97,23 @@
     <div class="fila">
         <div class="campo">
             <label for="tecnico">Técnico Unidad Solicitante</label>
-            <input id="tecnico" readonly>
+            <select id="tecnico" onchange="cambiarTecnico()">
+                <option value="">Seleccione...</option>
+            </select>
         </div>
 
         <div class="campo">
-            <label for="jefeInstalacion">Jefe Instalación</label>
-            <input id="jefeInstalacion" readonly>
+            <label for="areaTecnico">Área / Departamento</label>
+            <input id="areaTecnico" readonly>
         </div>
     </div>
 
     <div class="fila">
+        <div class="campo">
+            <label for="jefeInstalacion">Jefe Instalación</label>
+            <input id="jefeInstalacion" readonly>
+        </div>
+
         <div class="campo">
             <label for="unidad">Unidad Solicitante</label>
             <input id="unidad" readonly>
@@ -117,20 +126,20 @@
             <textarea id="trabajo"></textarea>
         </div>
     </div>
+
     <div class="fila">
         <div class="campo">
             <label for="descripcion">Definición del Trabajo</label>
             <textarea id="descripcion"></textarea>
         </div>
     </div>
+
     <div class="fila">
         <div class="campo">
             <label for="textoContratista">EMPRESA CONTRATISTA (Método de trabajo / recursos)</label>
             <textarea id="textoContratista"></textarea>
         </div>
     </div>
-
-
 
     <div class="fila">
         <div class="campo">
