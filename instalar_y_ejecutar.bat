@@ -3,6 +3,8 @@ setlocal
 
 cd /d "%~dp0"
 
+set "URL=[127.0.0.1](http://127.0.0.1:8000/)"
+
 echo ===============================
 echo   ACTA CERO - INSTALACION
 echo ===============================
@@ -16,7 +18,7 @@ if errorlevel 1 (
     exit /b 1
 )
 
-if not exist .venv (
+if not exist ".venv" (
     echo Creando entorno virtual...
     python -m venv .venv
     if errorlevel 1 (
@@ -26,10 +28,10 @@ if not exist .venv (
     )
 )
 
-call .venv\Scripts\activate.bat
+call ".venv\Scripts\activate.bat"
 
 echo Actualizando pip...
-python -m pip install --upgrade pip
+python -m pip install --upgrade pip >nul
 
 echo Instalando dependencias...
 pip install -r requirements.txt
@@ -39,11 +41,22 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM start "" [127.0.0.1](http://127.0.0.1:8000/)
+echo Comprobando si el servidor ya esta en ejecucion...
+powershell -Command ^
+  "try { $r = Invoke-WebRequest -Uri '[127.0.0.1](http://127.0.0.1:8000/)' -UseBasicParsing -TimeoutSec 2; exit 0 } catch { exit 1 }"
 
-echo.
+if %errorlevel%==0 (
+    echo El servidor ya estaba en ejecucion.
+    start "" "%URL%"
+    exit /b 0
+)
+
 echo Iniciando servidor...
-start python server.py
-timeout /t 2 /nobreak
-start "" "http://127.0.0.1:8000/"
-pause
+start "" /b pythonw.exe server.py
+
+echo Esperando a que el servidor arranque...
+timeout /t 2 /nobreak >nul
+
+start "" "%URL%"
+
+exit /b 0
