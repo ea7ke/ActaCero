@@ -1,13 +1,14 @@
 {
-  "tecnicoSolicitante": {
-    "nombre": "Arturo Rivera Gallardo",
-    "firma": "img/firma-arturo.png",
-    "usarFirma": true
-  },
   "unidadSolicitante": "SE Sevilla",
   "jefeInstalacion": {
     "nombre": "José Antonio González Ortega",
     "firma": "img/firma-jefe.png",
     "usarFirma": false
+  },
+  "firmantePOJefe": {
+    "nombre": "Arturo Rivera Gallardo",
+    "firma": "img/firma-arturo.png",
+    "usarFirma": true
   }
 }
+
