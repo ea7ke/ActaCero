@@ -1,6 +1,7 @@
 let subestaciones = {};
 let contratistas = {};
 let configuracion = {};
+let tecnicos = [];
 
 let subestacionSeleccionada = null;
 let contratistaSeleccionado = null;
@@ -13,7 +14,8 @@ async function cargarTodo() {
     await Promise.all([
         cargarConfiguracion(),
         cargarSubestaciones(),
-        cargarContratistas()
+        cargarContratistas(),
+        cargarTecnicos()
     ]);
 }
 
@@ -23,37 +25,36 @@ async function cargarConfiguracion() {
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         configuracion = await res.json();
 
-        const tecnico = configuracion.tecnicoSolicitante || {};
         const jefe = configuracion.jefeInstalacion || {};
-
-        document.getElementById("cfgTecnicoNombre").value = tecnico.nombre || "";
-        document.getElementById("cfgTecnicoFirma").value = tecnico.firma || "";
-        document.getElementById("cfgTecnicoUsarFirma").checked = !!tecnico.usarFirma;
+        const firmantePO = configuracion.firmantePOJefe || {};
 
         document.getElementById("cfgUnidad").value = configuracion.unidadSolicitante || "";
 
         document.getElementById("cfgJefeNombre").value = jefe.nombre || "";
         document.getElementById("cfgJefeFirma").value = jefe.firma || "";
         document.getElementById("cfgJefeUsarFirma").checked = !!jefe.usarFirma;
+
+        document.getElementById("cfgFirmantePONombre").value = firmantePO.nombre || "";
+        document.getElementById("cfgFirmantePOFirma").value = firmantePO.firma || "";
+        document.getElementById("cfgFirmantePOUsarFirma").checked = !!firmantePO.usarFirma;
     } catch (error) {
         console.error(error);
         alert(`No se pudo cargar la configuración: ${error.message}`);
     }
 }
 
-
 async function guardarConfiguracion() {
     const data = {
-        tecnicoSolicitante: {
-            nombre: document.getElementById("cfgTecnicoNombre").value.trim(),
-            firma: document.getElementById("cfgTecnicoFirma").value.trim(),
-            usarFirma: document.getElementById("cfgTecnicoUsarFirma").checked
-        },
         unidadSolicitante: document.getElementById("cfgUnidad").value.trim(),
         jefeInstalacion: {
             nombre: document.getElementById("cfgJefeNombre").value.trim(),
             firma: document.getElementById("cfgJefeFirma").value.trim(),
             usarFirma: document.getElementById("cfgJefeUsarFirma").checked
+        },
+        firmantePOJefe: {
+            nombre: document.getElementById("cfgFirmantePONombre").value.trim(),
+            firma: document.getElementById("cfgFirmantePOFirma").value.trim(),
+            usarFirma: document.getElementById("cfgFirmantePOUsarFirma").checked
         }
     };
 
@@ -77,6 +78,109 @@ async function guardarConfiguracion() {
     }
 }
 
+async function cargarTecnicos() {
+    try {
+        const res = await fetch("/api/tecnicos");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        tecnicos = await res.json();
+        renderTecnicos();
+    } catch (error) {
+        console.error(error);
+        alert(`No se pudieron cargar los técnicos: ${error.message}`);
+    }
+}
+
+function renderTecnicos() {
+    const contenedor = document.getElementById("listaTecnicos");
+    if (!contenedor) return;
+
+    if (!tecnicos.length) {
+        contenedor.innerHTML = `<div class="detalle-vacio">No hay técnicos.</div>`;
+        return;
+    }
+
+    contenedor.innerHTML = tecnicos
+        .slice()
+        .sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""))
+        .map(t => `
+            <div class="card-admin">
+                <div class="card-header">
+                    <h3>${escapeHtml(t.nombre || "")}</h3>
+                    <button class="btn-peligro" type="button" onclick="eliminarTecnico('${escapeJs(t.id)}')">Eliminar</button>
+                </div>
+                <div><strong>Área:</strong> ${escapeHtml(t.area || "")}</div>
+                <div><strong>Firma:</strong> ${escapeHtml(t.firma || "")}</div>
+                <div><strong>Usar firma:</strong> ${t.usarFirma ? "Sí" : "No"}</div>
+            </div>
+        `)
+        .join("");
+}
+
+function slugifyId(texto) {
+    return String(texto)
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/(^-|-$)/g, "");
+}
+
+async function crearTecnico() {
+    const nombre = document.getElementById("nuevoTecnicoNombre").value.trim();
+    const area = document.getElementById("nuevoTecnicoArea").value.trim();
+    const firma = document.getElementById("nuevoTecnicoFirma").value.trim();
+    const usarFirma = document.getElementById("nuevoTecnicoUsarFirma").checked;
+
+    if (!nombre) {
+        alert("Introduce el nombre del técnico.");
+        return;
+    }
+
+    const data = {
+        id: slugifyId(nombre),
+        nombre,
+        area,
+        firma,
+        usarFirma
+    };
+
+    try {
+        const res = await fetch("/api/tecnicos", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        const json = await res.json();
+        if (!res.ok || !json.ok) throw new Error(json.error || "No se pudo crear el técnico");
+
+        document.getElementById("nuevoTecnicoNombre").value = "";
+        document.getElementById("nuevoTecnicoArea").value = "";
+        document.getElementById("nuevoTecnicoFirma").value = "";
+        document.getElementById("nuevoTecnicoUsarFirma").checked = false;
+
+        await cargarTecnicos();
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+async function eliminarTecnico(id) {
+    if (!confirm("¿Eliminar este técnico?")) return;
+
+    try {
+        const res = await fetch(`/api/tecnicos/${encodeURIComponent(id)}`, {
+            method: "DELETE"
+        });
+
+        const json = await res.json();
+        if (!res.ok || !json.ok) throw new Error(json.error || "No se pudo eliminar el técnico");
+
+        await cargarTecnicos();
+    } catch (error) {
+        alert(error.message);
+    }
+}
 
 async function cargarSubestaciones() {
     try {
@@ -194,11 +298,7 @@ function renderDetalleSubestacion() {
 async function crearSubestacion() {
     const input = document.getElementById("nuevaSubestacion");
     const nombre = input.value.trim();
-
-    if (!nombre) {
-        alert("Introduce el nombre de la subestación.");
-        return;
-    }
+    if (!nombre) return alert("Introduce el nombre de la subestación.");
 
     try {
         const res = await fetch("/api/subestaciones", {
@@ -222,10 +322,7 @@ async function eliminarSubestacion(nombre) {
     if (!confirm(`¿Eliminar la subestación "${nombre}"?`)) return;
 
     try {
-        const res = await fetch(`/api/subestaciones/${encodeURIComponent(nombre)}`, {
-            method: "DELETE"
-        });
-
+        const res = await fetch(`/api/subestaciones/${encodeURIComponent(nombre)}`, { method: "DELETE" });
         const json = await res.json();
         if (!res.ok || !json.ok) throw new Error(json.error || "No se pudo eliminar");
 
@@ -239,11 +336,7 @@ async function eliminarSubestacion(nombre) {
 async function agregarParque(nombre) {
     const input = document.getElementById("nuevoParqueActual");
     const parque = input.value.trim();
-
-    if (!parque) {
-        alert("Introduce un parque.");
-        return;
-    }
+    if (!parque) return alert("Introduce un parque.");
 
     try {
         const res = await fetch(`/api/subestaciones/${encodeURIComponent(nombre)}/parques`, {
@@ -280,11 +373,7 @@ async function eliminarParque(nombre, parque) {
 async function agregarPosicion(nombre) {
     const input = document.getElementById("nuevaPosicionActual");
     const posicion = input.value.trim();
-
-    if (!posicion) {
-        alert("Introduce una posición.");
-        return;
-    }
+    if (!posicion) return alert("Introduce una posición.");
 
     try {
         const res = await fetch(`/api/subestaciones/${encodeURIComponent(nombre)}/posiciones`, {
@@ -412,11 +501,7 @@ function renderDetalleContratista() {
 async function crearContratista() {
     const input = document.getElementById("nuevoContratista");
     const nombre = input.value.trim();
-
-    if (!nombre) {
-        alert("Introduce el nombre de la contrata.");
-        return;
-    }
+    if (!nombre) return alert("Introduce el nombre de la contrata.");
 
     try {
         const res = await fetch("/api/contratistas", {
@@ -440,10 +525,7 @@ async function eliminarContratista(nombre) {
     if (!confirm(`¿Eliminar la contrata "${nombre}"?`)) return;
 
     try {
-        const res = await fetch(`/api/contratistas/${encodeURIComponent(nombre)}`, {
-            method: "DELETE"
-        });
-
+        const res = await fetch(`/api/contratistas/${encodeURIComponent(nombre)}`, { method: "DELETE" });
         const json = await res.json();
         if (!res.ok || !json.ok) throw new Error(json.error || "No se pudo eliminar");
 
@@ -457,11 +539,7 @@ async function eliminarContratista(nombre) {
 async function agregarRepresentante(nombre) {
     const input = document.getElementById("nuevoRepresentanteActual");
     const representante = input.value.trim();
-
-    if (!representante) {
-        alert("Introduce un representante.");
-        return;
-    }
+    if (!representante) return alert("Introduce un representante.");
 
     try {
         const res = await fetch(`/api/contratistas/${encodeURIComponent(nombre)}/representantes`, {
@@ -481,6 +559,8 @@ async function agregarRepresentante(nombre) {
 }
 
 async function eliminarRepresentante(nombre, representante) {
+    if (!confirm(`¿Eliminar el representante "${representante}" de "${nombre}"?`)) return;
+
     try {
         const res = await fetch(`/api/contratistas/${encodeURIComponent(nombre)}/representantes/${encodeURIComponent(representante)}`, {
             method: "DELETE"
