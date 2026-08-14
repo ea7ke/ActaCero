@@ -50,7 +50,6 @@ body {
     overflow: hidden;
 }
 
-
 .pagina:last-child {
     page-break-after: auto;
 }
@@ -208,6 +207,11 @@ li {
     font-size: 11px;
 }
 
+.pagina-cajas {
+    display: flex;
+    flex-direction: column;
+}
+
 .caja {
     border: 1px solid #222;
     margin-top: 10px;
@@ -215,6 +219,7 @@ li {
     break-inside: avoid;
     page-break-inside: avoid;
     position: relative;
+    width: 100%;
 }
 
 .caja-titulo {
@@ -236,7 +241,7 @@ li {
     position: relative;
     background-color: #fff;
     background-repeat: repeat-y;
-    background-size: 100% 21px;
+    background-size: 100% 19px;
     background-position: 0 0;
 }
 
@@ -255,22 +260,29 @@ li {
 }
 
 .caja-media .caja-contenido {
-    min-height: 130px;
+    min-height: 120px;
 }
 
 .caja-grande .caja-contenido {
-    min-height: 1800px;
+    min-height: 150px;
+}
+
+.caja-con-firma-abajo {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .texto-libre {
     white-space: pre-wrap;
-    line-height: 20px;
-    min-height: 90px;
+    line-height: 18px;
+    min-height: 54px;
     text-align: justify;
     position: relative;
     z-index: 2;
     padding-right: 10px;
     background: transparent;
+    flex: 1 1 auto;
 }
 
 .bloque-firma {
@@ -281,21 +293,17 @@ li {
     text-align: right;
     position: relative;
     z-index: 3;
-    background: #fff;
-    margin-top: 6px;
+    margin-top: 8px;
     padding-left: 20px;
-}
-
-.bloque-firma-abajo {
-    margin-top: 12px;
+    flex: 0 0 auto;
+    background: transparent;
 }
 
 .rol-firma {
     text-align: right;
-    margin-top: 8px;
+    margin-top: 4px;
     font-size: 11px;
-    background: #fff;
-    padding-left: 6px;
+    background: transparent;
 }
 
 .firma-img {
@@ -304,7 +312,7 @@ li {
     object-fit: contain;
     display: block;
     margin-top: 6px;
-    background: #fff;
+    background: transparent;
 }
 
 .firma-linea {
@@ -313,80 +321,26 @@ li {
     margin-left: auto;
     margin-top: 10px;
     margin-bottom: 4px;
-    background: #fff;
+    background: transparent;
 }
 
-.firmado-texto {
-    margin-top: 2px;
-    font-size: 11px;
-    background: #fff;
-    padding-left: 6px;
-}
-
-
-.lineas-manuales {
-    margin-top: 8px;
-    position: relative;
-    z-index: 1;
-}
-
-.lineas-manuales div {
-    height: 20px;
-    border-bottom: 1px dotted #888;
-}
-
-.bloque-firma {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    justify-content: flex-end;
-    text-align: right;
-    position: relative;
-    z-index: 3;
-    background: #fff;
-    padding-left: 20px;
-}
-
-
-.bloque-firma-abajo {
-    margin-top: 12px;
-}
-
-.rol-firma {
-    text-align: right;
-    margin-top: 8px;
-    font-size: 11px;
-}
-
-.firma-img {
-    max-width: 140px;
-    max-height: 48px;
-    object-fit: contain;
-    display: block;
-    margin-top: 6px;
-}
-
-.firma-linea {
+.firma-linea-manual {
     width: 150px;
     border-top: 1px solid #000;
-    margin-left: auto;
-    margin-top: 18px;
-    margin-bottom: 6px;
+    margin-top: 10px;
+    margin-bottom: 4px;
+    display: none;
+    background: transparent;
 }
 
 .firmado-texto {
     margin-top: 2px;
     font-size: 11px;
+    background: transparent;
 }
 
-.area-firma {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    justify-content: flex-end;
-    min-height: 72px;
-    padding-right: 8px;
-    text-align: right;
+.firma-oculta {
+    display: none !important;
 }
 
 @media print {
@@ -419,9 +373,41 @@ li {
         page-break-after: always;
     }
 
-    .pagina:last-child {
-        break-after: auto;
-        page-break-after: auto;
+    .pagina:last-of-type {
+        break-after: auto !important;
+        page-break-after: auto !important;
+    }
+
+    .pagina-cajas {
+        display: flex;
+        flex-direction: column;
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    .pagina-cajas .caja {
+        flex: 1 1 auto;
+        min-height: 0 !important;
+        margin-top: 8px;
+    }
+
+    .pagina-cajas .caja:first-of-type {
+        margin-top: 10px;
+    }
+
+    .pagina-cajas .caja:last-child {
+        margin-bottom: 0 !important;
+    }
+
+    .caja-media .caja-contenido,
+    .caja-grande .caja-contenido,
+    .pagina-cajas .caja-contenido {
+        min-height: 0 !important;
+        height: auto !important;
+    }
+
+    .bloque-firma {
+        margin-top: 6px !important;
     }
 
     .caja,
@@ -430,21 +416,4 @@ li {
         break-inside: avoid;
         page-break-inside: avoid;
     }
-}
-
-
-
-
-
-
-.firma-linea-manual {
-    width: 150px;
-    border-top: 1px solid #000;
-    margin-top: 18px;
-    margin-bottom: 6px;
-    display: none;
-}
-
-.firma-oculta {
-    display: none !important;
 }
