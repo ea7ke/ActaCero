@@ -9,57 +9,76 @@
 <body>
     <div class="contenedor">
         <h1>Administración</h1>
-<div class="acciones-superiores">
-    <a class="btn-secundario" href="/">Ir al formulario</a>
-</div>
-<section>
-    <h2>Configuración</h2>
 
-    <div class="bloque-config">
-        <h3>Técnico Unidad Solicitante</h3>
-
-        <div class="fila-admin">
-            <input id="cfgTecnicoNombre" placeholder="Nombre del técnico">
-            <input id="cfgTecnicoFirma" placeholder="Ruta firma técnico (ej: img/firma-arturo.png)">
+        <div class="acciones-superiores">
+            <a class="btn-secundario" href="/">Ir al formulario</a>
         </div>
 
-        <div class="fila-check">
-            <label class="check-label">
-                <input type="checkbox" id="cfgTecnicoUsarFirma">
-                Usar firma automática del técnico
-            </label>
-        </div>
-    </div>
+        <section>
+            <h2>Configuración</h2>
 
-    <div class="bloque-config">
-        <h3>Unidad solicitante</h3>
+            <div class="bloque-config">
+                <h3>Unidad solicitante</h3>
+                <div class="fila-admin">
+                    <input id="cfgUnidad" placeholder="Unidad solicitante">
+                </div>
+            </div>
 
-        <div class="fila-admin">
-            <input id="cfgUnidad" placeholder="Unidad solicitante">
-        </div>
-    </div>
+            <div class="bloque-config">
+                <h3>Jefe de Instalación</h3>
+                <div class="fila-admin">
+                    <input id="cfgJefeNombre" placeholder="Nombre del jefe">
+                    <input id="cfgJefeFirma" placeholder="Ruta firma jefe (ej: img/firma-jefe.png)">
+                </div>
+                <div class="fila-check">
+                    <label class="check-label">
+                        <input type="checkbox" id="cfgJefeUsarFirma">
+                        Usar firma automática del jefe
+                    </label>
+                </div>
+            </div>
 
-    <div class="bloque-config">
-        <h3>Jefe de Instalación</h3>
+            <div class="bloque-config">
+                <h3>Firmante P.O. del Jefe de la Instalación</h3>
+                <div class="fila-admin">
+                    <input id="cfgFirmantePONombre" placeholder="Nombre del firmante P.O.">
+                    <input id="cfgFirmantePOFirma" placeholder="Ruta firma (ej: img/firma-arturo.png)">
+                </div>
+                <div class="fila-check">
+                    <label class="check-label">
+                        <input type="checkbox" id="cfgFirmantePOUsarFirma">
+                        Usar firma automática del firmante P.O.
+                    </label>
+                </div>
+            </div>
 
-        <div class="fila-admin">
-            <input id="cfgJefeNombre" placeholder="Nombre del jefe">
-            <input id="cfgJefeFirma" placeholder="Ruta firma jefe (ej: img/firma-jefe.png)">
-        </div>
+            <div class="fila-admin">
+                <button type="button" onclick="guardarConfiguracion()">Guardar configuración</button>
+            </div>
+        </section>
 
-        <div class="fila-check">
-            <label class="check-label">
-                <input type="checkbox" id="cfgJefeUsarFirma">
-                Usar firma automática del jefe
-            </label>
-        </div>
-    </div>
+        <section>
+            <h2>Técnicos solicitantes</h2>
 
-    <div class="fila-admin">
-        <button type="button" onclick="guardarConfiguracion()">Guardar configuración</button>
-    </div>
-</section>
+            <div class="fila-admin">
+                <input id="nuevoTecnicoNombre" placeholder="Nombre del técnico">
+                <input id="nuevoTecnicoArea" placeholder="Área">
+                <input id="nuevoTecnicoFirma" placeholder="Ruta firma (ej: img/firma-arturo.png)">
+            </div>
 
+            <div class="fila-check">
+                <label class="check-label">
+                    <input type="checkbox" id="nuevoTecnicoUsarFirma">
+                    Usar firma automática
+                </label>
+            </div>
+
+            <div class="fila-admin">
+                <button type="button" onclick="crearTecnico()">Añadir técnico</button>
+            </div>
+
+            <div id="listaTecnicos"></div>
+        </section>
 
         <section>
             <div class="cabecera-seccion">
