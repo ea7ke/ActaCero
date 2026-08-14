@@ -12,7 +12,6 @@
 </div>
 
 <section class="pagina">
-
     <div class="encabezado">
         <div class="logo">
             <img src="img/logo-endesa.png" alt="Logo Endesa">
@@ -48,15 +47,9 @@
         <div class="seccion-titulo">OBJETIVO DE LA REUNIÓN</div>
 
         <ol>
-            <li>
-                Por parte de la <strong>UNIDAD SOLICITANTE DEL TRABAJO</strong>, como conocedora del trabajo a realizar, definir con la máxima precisión posible los trabajos.
-            </li>
-            <li>
-                Por parte de la <strong>EMPRESA CONTRATISTA</strong>, como realizadora de los trabajos, identificar y planificar los medios humanos y materiales necesarios para la correcta realización de los mismos.
-            </li>
-            <li>
-                Por parte del <strong>JEFE DE INSTALACIÓN</strong>, como conocedor de la instalación, validar la zona identificada y tramitar el descargo.
-            </li>
+            <li>Por parte de la <strong>UNIDAD SOLICITANTE DEL TRABAJO</strong>, como conocedora del trabajo a realizar, definir con la máxima precisión posible los trabajos.</li>
+            <li>Por parte de la <strong>EMPRESA CONTRATISTA</strong>, como realizadora de los trabajos, identificar y planificar los medios humanos y materiales necesarios para la correcta realización de los mismos.</li>
+            <li>Por parte del <strong>JEFE DE INSTALACIÓN</strong>, como conocedor de la instalación, validar la zona identificada y tramitar el descargo.</li>
         </ol>
 
         <p class="nota-responsabilidad">
@@ -71,13 +64,12 @@
             <div class="linea">
                 <strong>Nº LCL:</strong> <span id="lcl"></span>
             </div>
-            
+
             <div class="linea">
                 <strong>FECHA INICIO:</strong> <span id="fechaInicioTrabajo"></span>
                 <span class="espacio"></span>
                 <strong>FECHA FINAL:</strong> <span id="fechaFinTrabajo"></span>
             </div>
-
 
             <div class="linea">
                 <strong>SUBESTACIÓN:</strong> <span id="subestacion"></span>
@@ -144,11 +136,9 @@
             <li>El Jefe de Trabajo se compromete a informar al Agente del Descargo y al Jefe de la Instalación de cualquier incidencia.</li>
         </ul>
     </section>
-
 </section>
 
-<section class="pagina">
-
+<section class="pagina pagina-cajas">
     <div class="encabezado">
         <div class="logo">
             <img src="img/logo-endesa.png" alt="Logo Endesa">
@@ -178,13 +168,12 @@
         <div class="caja-contenido caja-con-lineas">
             <div id="descripcionTrabajo" class="texto-libre"></div>
 
-			<div class="bloque-firma">
-				<div class="rol-firma">El Técnico U. Solicitante</div>
-				<img id="firmaTecnicoImg" src="" alt="Firma técnico" class="firma-img">
-				<div class="firma-linea-manual" id="firmaTecnicoManual"></div>
-				<div class="firmado-texto">Firmado: <span id="firmaTecnicoNombre"></span></div>
-			</div>
-
+            <div class="bloque-firma">
+                <div class="rol-firma">El Técnico U. Solicitante</div>
+                <img id="firmaTecnicoImg" src="" alt="Firma técnico" class="firma-img">
+                <div class="firma-linea-manual" id="firmaTecnicoManual"></div>
+                <div class="firmado-texto">Firmado: <span id="firmaTecnicoNombre"></span></div>
+            </div>
         </div>
     </section>
 
@@ -197,137 +186,12 @@
         <div class="caja-contenido caja-con-lineas">
             <div id="textoContratista" class="texto-libre"></div>
 
-			<div class="bloque-firma">
-				<div class="rol-firma">El Repr. Emp. Contratista</div>
-				<div class="firma-linea"></div>
-				<div class="firmado-texto">Firmado: <span id="representanteFirma"></span></div>
-			</div>
-		
+            <div class="bloque-firma">
+                <div class="rol-firma">El Repr. Emp. Contratista</div>
+                <div class="firma-linea"></div>
+                <div class="firmado-texto">Firmado: <span id="representanteFirma"></span></div>
+            </div>
         </div>
     </section>
 
-    <section class="caja caja-grande">
-        <div class="caja-titulo">
-            <strong>JEFE DE LA INSTALACIÓN:</strong>
-            Validación de la posibilidad de dejar sin tensión la zona identificada. Petición del descargo y/o trabajos en proximidad de tensión.
-        </div>
-
-        <div class="caja-contenido caja-con-lineas">
-            <div id="textoJI" class="texto-libre"></div>
-
-			<div class="bloque-firma">
-				<div class="rol-firma">El Técnico U. Solicitante<br>P.O. del Jefe de la Instalación</div>
-				<img id="firmaTecnicoPOImg" src="" alt="Firma técnico unidad solicitante" class="firma-img">
-				<div class="firma-linea-manual" id="firmaTecnicoPOManual"></div>
-				<div class="firmado-texto">Firmado: <span id="firmaTecnicoPO"></span></div>
-			</div>
-
-
-        </div>
-    </section>
-
-</section>
-
-<script>
-const datos = JSON.parse(localStorage.getItem("actaCero")) || {};
-
-function poner(id, valor) {
-    const elemento = document.getElementById(id);
-    if (elemento) elemento.textContent = valor || "";
-}
-
-function formatearFecha(fechaISO) {
-    if (!fechaISO) return { dia: "", mes: "", anio: "" };
-
-    const partes = fechaISO.split("-");
-    if (partes.length !== 3) return { dia: "", mes: "", anio: "" };
-
-    return {
-        anio: partes[0],
-        mes: partes[1].padStart(2, "0"),
-        dia: partes[2].padStart(2, "0")
-    };
-}
-
-function actualizarLineasSegunContenido(idTexto) {
-    const bloqueTexto = document.getElementById(idTexto);
-    if (!bloqueTexto) return;
-
-    const contenedor = bloqueTexto.closest(".caja-contenido");
-    if (!contenedor) return;
-
-    const tieneTexto = bloqueTexto.textContent.trim() !== "";
-
-    if (tieneTexto) {
-        contenedor.classList.add("caja-sin-lineas");
-    } else {
-        contenedor.classList.remove("caja-sin-lineas");
-    }
-}
-
-function formatearFechaVisual(fechaISO) {
-    if (!fechaISO) return "";
-    const partes = fechaISO.split("-");
-    if (partes.length !== 3) return fechaISO;
-    return `${partes[2]}-${partes[1]}-${partes[0]}`;
-}
-
-function configurarFirma(imgId, lineaId, usarFirma, rutaFirma) {
-    const img = document.getElementById(imgId);
-    const linea = document.getElementById(lineaId);
-
-    if (!img || !linea) return;
-
-    if (usarFirma && rutaFirma) {
-        img.src = rutaFirma;
-        img.classList.remove("firma-oculta");
-        linea.style.display = "none";
-    } else {
-        img.removeAttribute("src");
-        img.classList.add("firma-oculta");
-        linea.style.display = "block";
-    }
-}
-
-    
-poner("lcl", datos.lcl);
-poner("lcl2", datos.lcl);
-poner("subestacion", datos.subestacion);
-poner("parque", datos.parque);
-poner("posicion", datos.posicion);
-poner("linea", datos.linea);
-poner("soporte", datos.soporte);
-poner("apertura", datos.apertura);
-poner("trabajo", datos.trabajo);
-poner("empresa", datos.empresa);
-poner("representante", datos.representante);
-poner("tecnico", datos.tecnico);
-poner("unidad", datos.unidad);
-poner("jefeInstalacion", datos.jefeInstalacion);
-poner("descripcionTrabajo", datos.descripcion);
-poner("textoContratista", datos.textoContratista);
-poner("textoJI", datos.textoJI);
-poner("firmaTecnicoNombre", datos.tecnico);
-poner("representanteFirma", datos.representante);
-poner("firmaTecnicoPO", datos.tecnico);
-poner("fechaInicioTrabajo", formatearFechaVisual(datos.fechaInicio));
-poner("fechaFinTrabajo", formatearFechaVisual(datos.fechaFin));
-
-
-
-
-const fecha = formatearFecha(datos.fecha);
-poner("dia", fecha.dia);
-poner("mes", fecha.mes);
-poner("anio", fecha.anio);
-
-actualizarLineasSegunContenido("descripcionTrabajo");
-actualizarLineasSegunContenido("textoContratista");
-actualizarLineasSegunContenido("textoJI");
-configurarFirma("firmaTecnicoImg", "firmaTecnicoManual", datos.tecnicoUsarFirma, datos.tecnicoFirma);
-configurarFirma("firmaTecnicoPOImg", "firmaTecnicoPOManual", datos.tecnicoUsarFirma, datos.tecnicoFirma);
-
-</script>
-
-</body>
-</html>
+    <section
