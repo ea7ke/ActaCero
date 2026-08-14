@@ -13,10 +13,18 @@ DATA_DIR = os.path.join(BASE_DIR, "datos")
 CONFIG_FILE = os.path.join(DATA_DIR, "configuracion.json")
 SUBESTACIONES_FILE = os.path.join(DATA_DIR, "subestaciones.json")
 CONTRATISTAS_FILE = os.path.join(DATA_DIR, "contratistas.json")
+TECNICOS_FILE = os.path.join(DATA_DIR, "tecnicos.json")
 
 
 def ensure_data_dir():
     os.makedirs(DATA_DIR, exist_ok=True)
+
+
+def ensure_file(path, default_data):
+    ensure_data_dir()
+    if not os.path.exists(path):
+        with open(path, "w", encoding="utf-8") as f:
+            json.dump(default_data, f, ensure_ascii=False, indent=2)
 
 
 def read_json(path, default=None):
@@ -66,13 +74,13 @@ def acta_page():
 @app.route("/api/configuracion", methods=["GET"])
 def get_configuracion():
     data = read_json(CONFIG_FILE, default={
-        "tecnicoSolicitante": {
+        "unidadSolicitante": "",
+        "jefeInstalacion": {
             "nombre": "",
             "firma": "",
             "usarFirma": False
         },
-        "unidadSolicitante": "",
-        "jefeInstalacion": {
+        "firmantePOJefe": {
             "nombre": "",
             "firma": "",
             "usarFirma": False
@@ -81,31 +89,29 @@ def get_configuracion():
     return jsonify(data)
 
 
-
 @app.route("/api/configuracion", methods=["POST"])
 def save_configuracion():
     data = request.get_json(silent=True) or {}
 
-    tecnico = data.get("tecnicoSolicitante", {}) or {}
     jefe = data.get("jefeInstalacion", {}) or {}
+    firmante_po = data.get("firmantePOJefe", {}) or {}
 
     payload = {
-        "tecnicoSolicitante": {
-            "nombre": str(tecnico.get("nombre", "")).strip(),
-            "firma": str(tecnico.get("firma", "")).strip(),
-            "usarFirma": bool(tecnico.get("usarFirma", False))
-        },
         "unidadSolicitante": str(data.get("unidadSolicitante", "")).strip(),
         "jefeInstalacion": {
             "nombre": str(jefe.get("nombre", "")).strip(),
             "firma": str(jefe.get("firma", "")).strip(),
             "usarFirma": bool(jefe.get("usarFirma", False))
+        },
+        "firmantePOJefe": {
+            "nombre": str(firmante_po.get("nombre", "")).strip(),
+            "firma": str(firmante_po.get("firma", "")).strip(),
+            "usarFirma": bool(firmante_po.get("usarFirma", False))
         }
     }
 
     write_json(CONFIG_FILE, payload)
     return jsonify({"ok": True, "data": payload})
-
 
 
 # ---------------- SUBESTACIONES ----------------
@@ -386,18 +392,97 @@ def delete_representante(nombre, representante):
     return jsonify({"ok": True})
 
 
+# ---------------- TECNICOS ----------------
+
+@app.route("/api/tecnicos", methods=["GET"])
+def get_tecnicos():
+    data = read_json(TECNICOS_FILE, default=[])
+    return jsonify(data)
+
+
+@app.route("/api/tecnicos", methods=["POST"])
+def add_tecnico():
+    data = request.get_json(silent=True) or {}
+    tecnicos = read_json(TECNICOS_FILE, default=[])
+
+    nuevo = {
+        "id": str(data.get("id", "")).strip(),
+        "nombre": str(data.get("nombre", "")).strip(),
+        "firma": str(data.get("firma", "")).strip(),
+        "usarFirma": bool(data.get("usarFirma", False)),
+        "area": str(data.get("area", "")).strip()
+    }
+
+    if not nuevo["id"] or not nuevo["nombre"]:
+        return jsonify({"ok": False, "error": "ID y nombre obligatorios"}), 400
+
+    if any(t.get("id") == nuevo["id"] for t in tecnicos):
+        return jsonify({"ok": False, "error": "Ya existe un técnico con ese ID"}), 400
+
+    tecnicos.append(nuevo)
+    write_json(TECNICOS_FILE, tecnicos)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/tecnicos/<path:tecnico_id>", methods=["PUT"])
+def update_tecnico(tecnico_id):
+    tecnico_id = normalize_text(tecnico_id)
+    data = request.get_json(silent=True) or {}
+    tecnicos = read_json(TECNICOS_FILE, default=[])
+
+    index = next((i for i, t in enumerate(tecnicos) if t.get("id") == tecnico_id), None)
+    if index is None:
+        return jsonify({"ok": False, "error": "No existe el técnico"}), 404
+
+    tecnicos[index] = {
+        "id": tecnico_id,
+        "nombre": str(data.get("nombre", "")).strip(),
+        "firma": str(data.get("firma", "")).strip(),
+        "usarFirma": bool(data.get("usarFirma", False)),
+        "area": str(data.get("area", "")).strip()
+    }
+
+    write_json(TECNICOS_FILE, tecnicos)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/tecnicos/<path:tecnico_id>", methods=["DELETE"])
+def delete_tecnico(tecnico_id):
+    tecnico_id = normalize_text(tecnico_id)
+    tecnicos = read_json(TECNICOS_FILE, default=[])
+
+    nuevos = [t for t in tecnicos if t.get("id") != tecnico_id]
+
+    if len(nuevos) == len(tecnicos):
+        return jsonify({"ok": False, "error": "No existe el técnico"}), 404
+
+    write_json(TECNICOS_FILE, nuevos)
+    return jsonify({"ok": True})
+
+
 # ---------------- ARCHIVOS ESTATICOS ----------------
-# Esta ruta va al final para no interferir con /api/...
 
 @app.route("/<path:path>")
 def static_files(path):
     return send_from_directory(BASE_DIR, path)
 
 
-# if __name__ == "__main__":
-    # ensure_data_dir()
-    # app.run(debug=True, host="0.0.0.0", port=8000)
-
 if __name__ == "__main__":
     ensure_data_dir()
+    ensure_file(CONFIG_FILE, {
+        "unidadSolicitante": "",
+        "jefeInstalacion": {
+            "nombre": "",
+            "firma": "",
+            "usarFirma": False
+        },
+        "firmantePOJefe": {
+            "nombre": "",
+            "firma": "",
+            "usarFirma": False
+        }
+    })
+    ensure_file(SUBESTACIONES_FILE, {})
+    ensure_file(CONTRATISTAS_FILE, {})
+    ensure_file(TECNICOS_FILE, [])
     app.run(debug=False, host="127.0.0.1", port=8000)
