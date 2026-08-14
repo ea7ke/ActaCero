@@ -12,16 +12,10 @@ if not exist .venv\Scripts\activate.bat (
 
 call .venv\Scripts\activate.bat
 
-REM start "" [127.0.0.1](http://127.0.0.1:8000/)
+start "" /b pythonw.exe server.py
 
-REM python server.py
-
-start python server.py
-
-timeout /t 2 /nobreak
+timeout /t 2 /nobreak >null
 
 start "" "http://127.0.0.1:8000/"
 
 exit
-
-pause
