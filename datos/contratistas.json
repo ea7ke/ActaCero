@@ -4,6 +4,11 @@
       "nombre": "Arturo Rivera Gallardo",
       "firma": "img/firmas/52107218cfbb4435a5eab0eb54530ccb.png",
       "usarFirma": true
+    },
+    {
+      "nombre": "Rosa María Sayago",
+      "firma": "",
+      "usarFirma": false
     }
   ],
   "ELECNOR": [
@@ -13,7 +18,32 @@
       "usarFirma": false
     },
     {
-      "nombre": "Javier Falantes",
+      "nombre": "Miguel del Toro",
+      "firma": "",
+      "usarFirma": false
+    },
+    {
+      "nombre": "Luis Vilches",
+      "firma": "",
+      "usarFirma": false
+    },
+    {
+      "nombre": "Antonio Sánchez",
+      "firma": "",
+      "usarFirma": false
+    },
+    {
+      "nombre": "José Javier Falantes",
+      "firma": "",
+      "usarFirma": false
+    },
+    {
+      "nombre": "Nacho Blanco",
+      "firma": "",
+      "usarFirma": false
+    },
+    {
+      "nombre": "José Luis Esteban",
       "firma": "",
       "usarFirma": false
     },
@@ -21,21 +51,6 @@
       "nombre": "Jesús Santiago",
       "firma": "",
       "usarFirma": false
-    },
-    {
-      "nombre": "Fran Gálvez",
-      "firma": "",
-      "usarFirma": false
-    },
-    {
-      "nombre": "Miguel del Toro",
-      "firma": "",
-      "usarFirma": false
-    },
-    {
-      "nombre": "Nacho Blanco",
-      "firma": "img/firmas/35f44f90808145e29d9102f32703209f.png",
-      "usarFirma": true
     }
   ]
 }

@@ -6,8 +6,8 @@
     "usarFirma": false
   },
   "firmantePOJefe": {
-    "nombre": "Arturo Rivera Gallardo",
-    "firma": "img/firmas/b63809a54b1944c9b070d742d70b08c1.png",
-    "usarFirma": true
+    "nombre": "",
+    "firma": "",
+    "usarFirma": false
   }
 }
