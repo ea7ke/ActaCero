@@ -5,6 +5,43 @@
     <title>Acta Cero</title>
     <link rel="stylesheet" href="css/estilos.css">
     <script src="js/app.js" defer></script>
+    <style>
+        .multi-select-lista {
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 6px 10px;
+            max-height: 160px;
+            overflow-y: auto;
+            background: #fff;
+        }
+
+        .multi-select-lista label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: normal;
+            padding: 5px 2px;
+            cursor: pointer;
+        }
+
+        .multi-select-lista input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            flex: 0 0 auto;
+        }
+
+        .multi-select-vacio {
+            color: #888;
+            font-size: 13px;
+            padding: 4px 2px;
+        }
+
+        .ayuda-campo {
+            font-weight: normal;
+            font-size: 12px;
+            color: #888;
+        }
+    </style>
 </head>
 <body>
 
@@ -23,7 +60,7 @@
         </div>
 
         <div class="campo">
-            <label for="lcl">Nº LCL</label>
+            <label for="lcl">Nº LCL/OT/PLAN</label>
             <input type="text" id="lcl">
         </div>
     </div>
@@ -49,15 +86,19 @@
         </div>
 
         <div class="campo">
-            <label for="parque">Parque</label>
-            <select id="parque"></select>
+            <label>Parque <span class="ayuda-campo">(puedes marcar varios)</span></label>
+            <div id="parque" class="multi-select-lista">
+                <div class="multi-select-vacio">Selecciona antes una subestación.</div>
+            </div>
         </div>
     </div>
 
     <div class="fila">
         <div class="campo">
-            <label for="posicion">Posición</label>
-            <select id="posicion"></select>
+            <label>Posición <span class="ayuda-campo">(puedes marcar varias)</span></label>
+            <div id="posicion" class="multi-select-lista">
+                <div class="multi-select-vacio">Selecciona antes una subestación.</div>
+            </div>
         </div>
     </div>
 
@@ -90,7 +131,7 @@
 
         <div class="campo">
             <label for="representante">Representante</label>
-            <select id="representante"></select>
+            <select id="representante" onchange="cambiarRepresentante()"></select>
         </div>
     </div>
 
@@ -115,10 +156,12 @@
         </div>
 
         <div class="campo">
-            <label for="unidad">Unidad Solicitante</label>
-            <input id="unidad" readonly>
+            <label for="firmantePODisplay">Firmante P.O. Jefe Instalación</label>
+            <input id="firmantePODisplay" readonly>
         </div>
     </div>
+
+    <input type="hidden" id="unidad">
 
     <div class="fila">
         <div class="campo">

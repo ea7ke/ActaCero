@@ -62,7 +62,7 @@
 
         <div class="datos-generales">
             <div class="linea">
-                <strong>Nº LCL:</strong> <span id="lcl"></span>
+                <strong>Nº LCL/OT/PLAN:</strong> <span id="lcl"></span>
             </div>
 
             <div class="linea">
@@ -156,7 +156,7 @@
     </div>
 
     <div class="ot-linea">
-        <strong>Nº OT's:</strong> <span id="lcl2"></span>
+        <strong>Nº LCL/OT/PLAN:</strong> <span id="lcl2"></span>
     </div>
 
     <section class="caja caja-media">
@@ -188,7 +188,8 @@
 
             <div class="bloque-firma">
                 <div class="rol-firma">El Repr. Emp. Contratista</div>
-                <div class="firma-linea"></div>
+                <img id="firmaRepresentanteImg" src="" alt="Firma representante" class="firma-img">
+                <div class="firma-linea-manual" id="firmaRepresentanteManual"></div>
                 <div class="firmado-texto">Firmado: <span id="representanteFirma"></span></div>
             </div>
         </div>
@@ -305,6 +306,7 @@ actualizarLineasSegunContenido("textoContratista");
 actualizarLineasSegunContenido("textoJI");
 
 configurarFirma("firmaTecnicoImg", "firmaTecnicoManual", datos.tecnicoUsarFirma, datos.tecnicoFirma);
+configurarFirma("firmaRepresentanteImg", "firmaRepresentanteManual", datos.representanteUsarFirma, datos.representanteFirma);
 configurarFirma("firmaFirmantePOImg", "firmaFirmantePOManual", datos.firmantePOJefeUsarFirma, datos.firmantePOJefeFirma);
 </script>
 

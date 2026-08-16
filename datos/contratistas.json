@@ -1,24 +1,41 @@
 {
   "EDE": [
-    "Antonio Carmona",
-    "Martín Herrera"
-  ],
-  "EIFFAGE": [
-    "Antonio García",
-    "Pablo Martín"
-  ],
-  "COBRA": [
-    "David Ruiz"
-  ],
-  "ADITEL": [
-    "David Ruiz"
+    {
+      "nombre": "Arturo Rivera Gallardo",
+      "firma": "img/firmas/52107218cfbb4435a5eab0eb54530ccb.png",
+      "usarFirma": true
+    }
   ],
   "ELECNOR": [
-    "Máximo Vecino",
-    "Nacho Blanco",
-    "Javier Falantes",
-    "Jesús Santiago",
-    "Fran Gálvez",
-    "Miguel del Toro"
+    {
+      "nombre": "Máximo Vecino",
+      "firma": "",
+      "usarFirma": false
+    },
+    {
+      "nombre": "Javier Falantes",
+      "firma": "",
+      "usarFirma": false
+    },
+    {
+      "nombre": "Jesús Santiago",
+      "firma": "",
+      "usarFirma": false
+    },
+    {
+      "nombre": "Fran Gálvez",
+      "firma": "",
+      "usarFirma": false
+    },
+    {
+      "nombre": "Miguel del Toro",
+      "firma": "",
+      "usarFirma": false
+    },
+    {
+      "nombre": "Nacho Blanco",
+      "firma": "img/firmas/35f44f90808145e29d9102f32703209f.png",
+      "usarFirma": true
+    }
   ]
 }

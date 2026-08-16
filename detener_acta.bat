@@ -1,8 +1,16 @@
 @echo off
-setlocal
+title Acta Cero - Detener
+echo.
+echo   Deteniendo el servidor de Acta Cero...
+echo.
 
-for /f "tokens=5" %%a in ('netstat -ano ^| findstr :8000 ^| findstr LISTENING') do (
-    taskkill /PID %%a /F >nul 2>&1
+taskkill /FI "WINDOWTITLE eq Acta Cero - Servidor*" /T /F >nul 2>nul
+
+if errorlevel 1 (
+    echo   No se ha encontrado ningun servidor de Acta Cero en ejecucion.
+) else (
+    echo   Servidor detenido correctamente.
 )
 
-exit /b 0
+echo.
+pause

@@ -1,2 +1,138 @@
-# ActaCero
-WebApp para confección de ActaCero - Acta de previa de trabajos en instalaciones eléctricas
+# Acta Cero
+
+Aplicación web local para confeccionar el **Acta de Reunión Previa para la Planificación de Trabajos en Subestaciones y LAT**. Funciona en modo local: un pequeño servidor en Python sirve el formulario, guarda los datos maestros (subestaciones, contratistas, técnicos...) y genera el acta lista para imprimir o guardar en PDF.
+
+No requiere conexión a internet ni instalación en un servidor externo: se ejecuta en el propio ordenador.
+
+---
+
+## 1. Requisitos
+
+- **Python 3** instalado en el equipo.
+- Las siguientes librerías de Python (recogidas en `requirements.txt`):
+  - `flask`
+  - `flask-cors`
+
+### Instalación de dependencias
+
+Abre una terminal (CMD/PowerShell en Windows, o Terminal en Mac/Linux) dentro de la carpeta del proyecto y ejecuta:
+
+```bash
+pip install -r requirements.txt
+```
+
+> En Windows no hace falta hacer esto a mano: el propio `ejecutar_acta.bat` instala las dependencias solo la primera vez que se usa.
+
+---
+
+## 2. Instalación rápida en Windows (recomendada para compañeros)
+
+Si no eres la persona que va a tocar el código, esta es la forma más sencilla de tener Acta Cero funcionando:
+
+1. Descarga o copia la carpeta completa del proyecto a tu equipo (por ejemplo, en el Escritorio o en `Documentos`).
+2. Asegúrate de tener **Python** instalado. Si no lo tienes, descárgalo de [python.org/downloads](https://www.python.org/downloads/) e instálalo marcando la casilla **"Add python.exe to PATH"** durante la instalación.
+3. Haz doble clic en **`crear_acceso_directo.bat`**. Esto crea un icono llamado **"Acta Cero"** en tu Escritorio.
+4. A partir de ahora, para usar la aplicación, haz doble clic en ese icono del Escritorio. Se abrirá una ventana de consola (que instala lo necesario la primera vez) y el navegador con el formulario, automáticamente.
+5. Para detener el servidor, ejecuta **`detener_acta.bat`**, o simplemente cierra la ventana de consola titulada "Acta Cero - Servidor".
+
+| Archivo | Para qué sirve |
+|---|---|
+| `crear_acceso_directo.bat` | Se ejecuta **una sola vez**. Crea el icono de acceso directo en el Escritorio. |
+| `ejecutar_acta.bat` | Arranca el servidor y abre el navegador. Es lo que hace el acceso directo del Escritorio. |
+| `detener_acta.bat` | Detiene el servidor cuando se termina de usar. |
+
+---
+
+## 3. Puesta en marcha manual (para desarrollo)
+
+1. Descarga o clona el proyecto desde GitHub.
+2. Abre una terminal en la carpeta del proyecto (donde está `server.py`).
+3. Arranca el servidor:
+
+   ```bash
+   python server.py
+   ```
+
+4. Verás que el servidor queda escuchando en:
+
+   ```
+   http://127.0.0.1:8000
+   ```
+
+5. Abre esa dirección en el navegador (Chrome o Edge recomendado). Ahí aparecerá el formulario del acta.
+
+Para **detener** el servidor, vuelve a la terminal donde lo lanzaste y pulsa `Ctrl + C`.
+
+> La primera vez que se arranca, el propio servidor crea automáticamente una carpeta `datos/` con los ficheros donde se guarda toda la configuración (subestaciones, contratistas, técnicos, etc.), así que no hay que crear nada a mano.
+
+---
+
+## 4. Estructura del proyecto
+
+```
+ActaCero/
+├── server.py                 → Servidor local (Flask). Sirve las páginas y la API de datos.
+├── requirements.txt           → Dependencias de Python del proyecto.
+├── ejecutar_acta.bat           → (Windows) Arranca el servidor y abre el navegador.
+├── detener_acta.bat            → (Windows) Detiene el servidor.
+├── crear_acceso_directo.bat    → (Windows) Crea el icono de acceso directo en el Escritorio.
+├── index.html                 → Formulario principal para rellenar un acta.
+├── acta.html                   → Vista del acta ya generada, lista para imprimir/PDF.
+├── admin.html                  → Panel de administración (configuración, técnicos, subestaciones, contratistas).
+├── css/                        → Hojas de estilo.
+├── js/                         → Lógica del formulario y del panel de administración.
+├── img/                        → Logo y firmas (incluye img/firmas/, donde se guardan las firmas subidas o dibujadas con lápiz).
+└── datos/                      → Se crea sola al arrancar. Guarda la configuración en ficheros .json:
+    ├── configuracion.json
+    ├── subestaciones.json
+    ├── contratistas.json
+    └── tecnicos.json
+```
+
+---
+
+## 5. Cómo funciona (uso diario)
+
+### 5.1. Rellenar un acta
+
+1. Con el servidor en marcha, entra en `http://127.0.0.1:8000`.
+2. Rellena los datos del formulario: fecha, Nº LCL/OT/PLAN, subestación, parque, posición, línea, empresa contratista, técnico, descripción del trabajo, etc.
+   - El **Nº LCL/OT/PLAN** que se introduce aparece automáticamente en las dos hojas del acta.
+   - Al elegir una **subestación**, el desplegable de **parque** y **posición** se rellena solo con lo que haya en el panel de administración.
+   - Al elegir la **empresa contratista**, se rellenan los representantes disponibles (con su firma, si la tienen configurada).
+   - Al elegir el **técnico**, se autocompletan su área/departamento (que también se usa como "Unidad Solicitante") y el resto de datos vinculados.
+3. Pulsa **"Vista previa Acta"**. Esto abre `acta.html` con el acta ya maquetada con los datos introducidos.
+4. En esa vista, el botón **"Generar PDF"** abre el diálogo de impresión del navegador. Ahí se puede elegir "Guardar como PDF" o enviarla a una impresora física.
+
+> Si alguno de los tres bloques de texto (Unidad Solicitante / Empresa Contratista / Jefe de Instalación) se deja vacío, el acta se imprime igualmente pero con líneas guía para rellenar ese bloque a mano.
+
+### 5.2. Panel de administración
+
+Accesible desde el botón **"Administración"** del formulario, o directamente en `http://127.0.0.1:8000/admin.html`.
+
+Desde aquí se gestiona todo lo que luego aparece como opción en el formulario principal:
+
+- **Configuración general**: unidad solicitante por defecto, nombre y firma del Jefe de Instalación, nombre y firma del firmante P.O. (este último se muestra también en el formulario principal, como referencia).
+- **Técnicos solicitantes**: alta/baja de técnicos, su área y su firma.
+- **Subestaciones**: alta/baja de subestaciones, y dentro de cada una, sus parques y posiciones.
+- **Contratistas**: alta/baja de empresas contratistas y de sus representantes (nombre, firma y opción de editarlos después de creados).
+
+Todos estos cambios se guardan automáticamente en los ficheros `.json` de la carpeta `datos/`, así que persisten entre reinicios del servidor.
+
+### 5.3. Firmas
+
+Para el Jefe de Instalación, el firmante P.O., cada técnico y cada representante de contratista, la firma se puede indicar de tres formas desde el panel de administración:
+
+- Escribiendo a mano la ruta de una imagen ya existente (ej: `img/firma-juan.png`).
+- Pulsando **"Subir imagen"**, para elegir un archivo PNG/JPG desde el propio equipo.
+- Pulsando **"Firmar con lápiz"**, que abre un lienzo para firmar con el dedo, ratón o lápiz óptico (útil en pantallas táctiles) y genera una imagen con fondo transparente.
+
+En cualquiera de los tres casos, hay que marcar la casilla **"Usar firma automática"** para que esa firma se inserte como imagen en el acta; si no, se deja el hueco en blanco con una línea para firmar a mano.
+
+---
+
+## 6. Notas para quien vaya a tocar el código
+
+- El servidor expone una pequeña API REST bajo `/api/...` (configuración, subestaciones, contratistas, técnicos) que consumen `js/app.js` y `js/admin.js`.
+- El paso de datos del formulario (`index.html`) a la vista del acta (`acta.html`) se hace a través de `localStorage` del navegador, no por la API — por eso `acta.html` solo funciona si se navega desde el propio formulario (o si `localStorage` ya tiene datos previos).
+- Los estilos de impresión del acta están en `css/acta.css`, usando `@media print` para controlar cómo queda al generar el PDF.

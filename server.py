@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 import json
 import os
+import uuid
 from urllib.parse import unquote
 
 app = Flask(__name__, static_folder=".", static_url_path="")
@@ -15,9 +16,17 @@ SUBESTACIONES_FILE = os.path.join(DATA_DIR, "subestaciones.json")
 CONTRATISTAS_FILE = os.path.join(DATA_DIR, "contratistas.json")
 TECNICOS_FILE = os.path.join(DATA_DIR, "tecnicos.json")
 
+FIRMAS_DIR = os.path.join(BASE_DIR, "img", "firmas")
+EXTENSIONES_FIRMA_PERMITIDAS = {"png", "jpg", "jpeg"}
+TAMANO_MAXIMO_FIRMA = 5 * 1024 * 1024  # 5 MB
+
 
 def ensure_data_dir():
     os.makedirs(DATA_DIR, exist_ok=True)
+
+
+def ensure_firmas_dir():
+    os.makedirs(FIRMAS_DIR, exist_ok=True)
 
 
 def ensure_file(path, default_data):
@@ -50,6 +59,31 @@ def normalize_key(value):
 
 def normalize_text(value):
     return unquote(str(value)).strip()
+
+
+def normalizar_representantes(lista):
+    """Convierte una lista de representantes al formato {nombre, firma, usarFirma}.
+    Admite datos antiguos donde el representante era solo una cadena de texto."""
+    normalizados = []
+
+    if not isinstance(lista, list):
+        return normalizados
+
+    for item in lista:
+        if isinstance(item, str):
+            nombre = item.strip()
+            if nombre:
+                normalizados.append({"nombre": nombre, "firma": "", "usarFirma": False})
+        elif isinstance(item, dict):
+            nombre = str(item.get("nombre", "")).strip()
+            if nombre:
+                normalizados.append({
+                    "nombre": nombre,
+                    "firma": str(item.get("firma", "")).strip(),
+                    "usarFirma": bool(item.get("usarFirma", False))
+                })
+
+    return normalizados
 
 
 @app.route("/")
@@ -285,6 +319,7 @@ def delete_posicion(nombre, posicion):
 @app.route("/api/contratistas", methods=["GET"])
 def get_contratistas():
     data = read_json(CONTRATISTAS_FILE, default={})
+    data = {nombre: normalizar_representantes(reps) for nombre, reps in data.items()}
     return jsonify(data)
 
 
@@ -324,13 +359,12 @@ def update_contratista(nombre):
         return jsonify({"ok": False, "error": "Nuevo nombre obligatorio"}), 400
 
     representantes = data.get("representantes", [])
-    if not isinstance(representantes, list):
-        representantes = []
+    representantes = normalizar_representantes(representantes)
 
     if nuevo_nombre != nombre:
         del contratistas[nombre]
 
-    contratistas[nuevo_nombre] = [str(r).strip() for r in representantes if str(r).strip()]
+    contratistas[nuevo_nombre] = representantes
     write_json(CONTRATISTAS_FILE, contratistas)
     return jsonify({"ok": True})
 
@@ -362,12 +396,52 @@ def add_representante(nombre):
     if nombre not in contratistas:
         return jsonify({"ok": False, "error": "No existe la contrata"}), 404
 
-    if not isinstance(contratistas[nombre], list):
-        contratistas[nombre] = []
+    lista = normalizar_representantes(contratistas[nombre])
 
-    if representante not in contratistas[nombre]:
-        contratistas[nombre].append(representante)
+    if any(r["nombre"] == representante for r in lista):
+        return jsonify({"ok": False, "error": "Ese representante ya existe"}), 400
 
+    lista.append({
+        "nombre": representante,
+        "firma": str(data.get("firma", "")).strip(),
+        "usarFirma": bool(data.get("usarFirma", False))
+    })
+
+    contratistas[nombre] = lista
+    write_json(CONTRATISTAS_FILE, contratistas)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/contratistas/<path:nombre>/representantes/<path:representante>", methods=["PUT"])
+def update_representante(nombre, representante):
+    nombre = normalize_key(nombre)
+    representante = normalize_text(representante)
+    data = request.get_json(silent=True) or {}
+
+    contratistas = read_json(CONTRATISTAS_FILE, default={})
+    if nombre not in contratistas:
+        return jsonify({"ok": False, "error": "No existe la contrata"}), 404
+
+    lista = normalizar_representantes(contratistas[nombre])
+    indice = next((i for i, r in enumerate(lista) if r["nombre"] == representante), None)
+
+    if indice is None:
+        return jsonify({"ok": False, "error": "No existe el representante"}), 404
+
+    nuevo_nombre = normalize_text(data.get("nuevoNombre", representante))
+    if not nuevo_nombre:
+        return jsonify({"ok": False, "error": "Nombre obligatorio"}), 400
+
+    if nuevo_nombre != representante and any(r["nombre"] == nuevo_nombre for r in lista):
+        return jsonify({"ok": False, "error": "Ya existe un representante con ese nombre"}), 400
+
+    lista[indice] = {
+        "nombre": nuevo_nombre,
+        "firma": str(data.get("firma", "")).strip(),
+        "usarFirma": bool(data.get("usarFirma", False))
+    }
+
+    contratistas[nombre] = lista
     write_json(CONTRATISTAS_FILE, contratistas)
     return jsonify({"ok": True})
 
@@ -382,12 +456,10 @@ def delete_representante(nombre, representante):
     if nombre not in contratistas:
         return jsonify({"ok": False, "error": "No existe la contrata"}), 404
 
-    if not isinstance(contratistas[nombre], list):
-        contratistas[nombre] = []
+    lista = normalizar_representantes(contratistas[nombre])
+    nueva_lista = [r for r in lista if r["nombre"] != representante]
 
-    if representante in contratistas[nombre]:
-        contratistas[nombre].remove(representante)
-
+    contratistas[nombre] = nueva_lista
     write_json(CONTRATISTAS_FILE, contratistas)
     return jsonify({"ok": True})
 
@@ -460,6 +532,38 @@ def delete_tecnico(tecnico_id):
     return jsonify({"ok": True})
 
 
+# ---------------- FIRMAS ----------------
+
+@app.route("/api/subir-firma", methods=["POST"])
+def subir_firma():
+    ensure_firmas_dir()
+
+    archivo = request.files.get("firma")
+    if not archivo or archivo.filename == "":
+        return jsonify({"ok": False, "error": "No se ha recibido ninguna imagen"}), 400
+
+    if "." not in archivo.filename:
+        return jsonify({"ok": False, "error": "Formato no permitido (usa PNG o JPG)"}), 400
+
+    extension = archivo.filename.rsplit(".", 1)[-1].lower()
+    if extension not in EXTENSIONES_FIRMA_PERMITIDAS:
+        return jsonify({"ok": False, "error": "Formato no permitido (usa PNG o JPG)"}), 400
+
+    archivo.seek(0, os.SEEK_END)
+    tamano = archivo.tell()
+    archivo.seek(0)
+
+    if tamano > TAMANO_MAXIMO_FIRMA:
+        return jsonify({"ok": False, "error": "La imagen no puede superar los 5 MB"}), 400
+
+    nombre_archivo = f"{uuid.uuid4().hex}.{extension}"
+    ruta_absoluta = os.path.join(FIRMAS_DIR, nombre_archivo)
+    archivo.save(ruta_absoluta)
+
+    ruta_relativa = f"img/firmas/{nombre_archivo}"
+    return jsonify({"ok": True, "ruta": ruta_relativa})
+
+
 # ---------------- ARCHIVOS ESTATICOS ----------------
 
 @app.route("/<path:path>")
@@ -469,6 +573,7 @@ def static_files(path):
 
 if __name__ == "__main__":
     ensure_data_dir()
+    ensure_firmas_dir()
     ensure_file(CONFIG_FILE, {
         "unidadSolicitante": "",
         "jefeInstalacion": {
