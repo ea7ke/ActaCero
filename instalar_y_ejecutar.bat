@@ -3,7 +3,7 @@ setlocal
 
 cd /d "%~dp0"
 
-set "URL=[127.0.0.1](http://127.0.0.1:8000/)"
+set "URL=http://127.0.0.1:8000/"
 
 echo ===============================
 echo   ACTA CERO - INSTALACION
@@ -43,7 +43,7 @@ if errorlevel 1 (
 
 echo Comprobando si el servidor ya esta en ejecucion...
 powershell -Command ^
-  "try { $r = Invoke-WebRequest -Uri '[127.0.0.1](http://127.0.0.1:8000/)' -UseBasicParsing -TimeoutSec 2; exit 0 } catch { exit 1 }"
+  "try { $r = Invoke-WebRequest -Uri 'http://127.0.0.1:8000/' -UseBasicParsing -TimeoutSec 2; exit 0 } catch { exit 1 }"
 
 if %errorlevel%==0 (
     echo El servidor ya estaba en ejecucion.
