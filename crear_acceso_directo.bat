@@ -22,4 +22,5 @@ echo   Acceso directo "Acta Cero" creado en el Escritorio.
 echo   A partir de ahora, para usar la aplicacion basta con hacer doble clic
 echo   en ese icono del Escritorio.
 echo.
-pause
+timeout /t 4 /nobreak >nul
+exit /b 0

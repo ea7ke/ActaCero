@@ -32,14 +32,16 @@ Si no eres la persona que va a tocar el código, esta es la forma más sencilla 
 1. Descarga o copia la carpeta completa del proyecto a tu equipo (por ejemplo, en el Escritorio o en `Documentos`).
 2. Asegúrate de tener **Python** instalado. Si no lo tienes, descárgalo de [python.org/downloads](https://www.python.org/downloads/) e instálalo marcando la casilla **"Add python.exe to PATH"** durante la instalación.
 3. Haz doble clic en **`crear_acceso_directo.bat`**. Esto crea un icono llamado **"Acta Cero"** en tu Escritorio.
-4. A partir de ahora, para usar la aplicación, haz doble clic en ese icono del Escritorio. Se abrirá una ventana de consola (que instala lo necesario la primera vez) y el navegador con el formulario, automáticamente.
-5. Para detener el servidor, ejecuta **`detener_acta.bat`**, o simplemente cierra la ventana de consola titulada "Acta Cero - Servidor".
+4. A partir de ahora, para usar la aplicación, haz doble clic en ese icono del Escritorio. El servidor arranca en segundo plano (sin mostrar ninguna ventana) y el navegador se abre solo con el formulario.
+5. Para detener el servidor, ejecuta **`detener_acta.bat`**.
 
 | Archivo | Para qué sirve |
 |---|---|
 | `crear_acceso_directo.bat` | Se ejecuta **una sola vez**. Crea el icono de acceso directo en el Escritorio. |
-| `ejecutar_acta.bat` | Arranca el servidor y abre el navegador. Es lo que hace el acceso directo del Escritorio. |
+| `ejecutar_acta.bat` | Arranca el servidor (oculto, sin ventana) y abre el navegador. Es lo que hace el acceso directo del Escritorio. |
 | `detener_acta.bat` | Detiene el servidor cuando se termina de usar. |
+
+> El servidor arranca con `pythonw`/`pyw` (las versiones de Python "sin consola"), así que no aparece ninguna ventana mientras funciona. `detener_acta.bat` sabe qué proceso parar porque `server.py` guarda su identificador de proceso en `acta_cero.pid` al arrancar.
 
 ---
 
@@ -82,11 +84,12 @@ ActaCero/
 ├── css/                        → Hojas de estilo.
 ├── js/                         → Lógica del formulario y del panel de administración.
 ├── img/                        → Logo y firmas (incluye img/firmas/, donde se guardan las firmas subidas o dibujadas con lápiz).
-└── datos/                      → Se crea sola al arrancar. Guarda la configuración en ficheros .json:
-    ├── configuracion.json
-    ├── subestaciones.json
-    ├── contratistas.json
-    └── tecnicos.json
+├── datos/                      → Se crea sola al arrancar. Guarda la configuración en ficheros .json:
+│   ├── configuracion.json
+│   ├── subestaciones.json
+│   ├── contratistas.json
+│   └── tecnicos.json
+└── acta_cero.pid                → Se crea sola al arrancar el servidor. Identificador del proceso, usado por detener_acta.bat.
 ```
 
 ---
@@ -98,7 +101,7 @@ ActaCero/
 1. Con el servidor en marcha, entra en `http://127.0.0.1:8000`.
 2. Rellena los datos del formulario: fecha, Nº LCL/OT/PLAN, subestación, parque, posición, línea, empresa contratista, técnico, descripción del trabajo, etc.
    - El **Nº LCL/OT/PLAN** que se introduce aparece automáticamente en las dos hojas del acta.
-   - Al elegir una **subestación**, el desplegable de **parque** y **posición** se rellena solo con lo que haya en el panel de administración.
+   - Al elegir una **subestación**, las listas de **parque** y **posición** se rellenan solas con lo que haya en el panel de administración. En ambas se puede marcar **más de una casilla**, por si el trabajo afecta a varios parques o posiciones a la vez.
    - Al elegir la **empresa contratista**, se rellenan los representantes disponibles (con su firma, si la tienen configurada).
    - Al elegir el **técnico**, se autocompletan su área/departamento (que también se usa como "Unidad Solicitante") y el resto de datos vinculados.
 3. Pulsa **"Vista previa Acta"**. Esto abre `acta.html` con el acta ya maquetada con los datos introducidos.
@@ -131,8 +134,22 @@ En cualquiera de los tres casos, hay que marcar la casilla **"Usar firma automá
 
 ---
 
-## 6. Notas para quien vaya a tocar el código
+## 6. Seguridad: acceso solo desde este ordenador
 
-- El servidor expone una pequeña API REST bajo `/api/...` (configuración, subestaciones, contratistas, técnicos) que consumen `js/app.js` y `js/admin.js`.
+Acta Cero está pensado para usarse en local, no como servicio compartido en red. Por eso el servidor está configurado con dos barreras independientes para que **solo el propio ordenador** pueda usarlo, aunque esté conectado a una red local o a internet:
+
+1. El servidor arranca escuchando únicamente en `127.0.0.1` (la propia máquina), no en la IP de red del equipo — a nivel de sistema operativo, otro ordenador de la red no puede ni abrir la conexión.
+2. Como segunda barrera, el propio servidor rechaza con un error `403` cualquier petición cuya IP de origen no sea `127.0.0.1`/`::1`, por si en el futuro alguien cambia la configuración de arranque sin darse cuenta de la implicación.
+
+No hace falta hacer nada para beneficiarse de esto: viene así de fábrica.
+
+---
+
+## 7. Notas para quien vaya a tocar el código
+
+- El servidor expone una pequeña API REST bajo `/api/...` (configuración, subestaciones, contratistas, técnicos, subida de firmas) que consumen `js/app.js` y `js/admin.js`.
 - El paso de datos del formulario (`index.html`) a la vista del acta (`acta.html`) se hace a través de `localStorage` del navegador, no por la API — por eso `acta.html` solo funciona si se navega desde el propio formulario (o si `localStorage` ya tiene datos previos).
 - Los estilos de impresión del acta están en `css/acta.css`, usando `@media print` para controlar cómo queda al generar el PDF.
+- `parque` y `posicion` viajan como texto plano con los valores marcados separados por `", "` (ej. `"Parque Norte, Parque Sur"`), generado en `app.js` a partir de las casillas marcadas — no como una lista/array.
+- El filtro de seguridad (`@app.before_request` en `server.py`) se aplica a **todas** las rutas, incluidas las estáticas; si algún día hace falta exponer el servidor en red (no recomendado), hay que revisar tanto ese filtro como el `host=` de `app.run()`.
+- `escribir_pid()` en `server.py` guarda el PID del proceso en `acta_cero.pid` al arrancar; `ejecutar_acta.bat` lo usa para matar una instancia anterior antes de arrancar una nueva, y `detener_acta.bat` para pararla. Si se edita el arranque del servidor (por ejemplo, para añadir el *reloader* de Flask en modo debug), hay que revisar que el PID guardado siga siendo el del proceso que realmente escucha en el puerto.

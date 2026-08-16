@@ -2,16 +2,19 @@
 title Acta Cero - Iniciando
 cd /d "%~dp0"
 
-REM --- Buscar un interprete de Python disponible (python o, en su defecto, el lanzador py) ---
+REM --- Buscar un interprete de Python disponible, y su version "sin ventana" ---
 set "PYCMD="
+set "PYCMD_OCULTO="
 
 where python >nul 2>nul
 if not errorlevel 1 (
     set "PYCMD=python"
+    set "PYCMD_OCULTO=pythonw"
 ) else (
     where py >nul 2>nul
     if not errorlevel 1 (
         set "PYCMD=py"
+        set "PYCMD_OCULTO=pyw"
     )
 )
 
@@ -40,9 +43,17 @@ if errorlevel 1 (
     exit /b 1
 )
 
+REM Si quedaba un servidor de una ejecucion anterior, lo paramos primero
+if exist acta_cero.pid (
+    for /f "usebackq delims=" %%p in ("acta_cero.pid") do (
+        taskkill /PID %%p /F >nul 2>nul
+    )
+    del acta_cero.pid >nul 2>nul
+)
+
 echo.
-echo   Arrancando el servidor de Acta Cero...
-start "Acta Cero - Servidor" cmd /k %PYCMD% server.py
+echo   Arrancando el servidor de Acta Cero en segundo plano...
+start "" /B %PYCMD_OCULTO% server.py
 
 REM Dar un par de segundos al servidor para que arranque antes de abrir el navegador
 timeout /t 2 /nobreak >nul
@@ -50,10 +61,8 @@ timeout /t 2 /nobreak >nul
 start "" http://127.0.0.1:8000
 
 echo.
-echo   Acta Cero se ha abierto en el navegador.
-echo   Esta ventana se puede cerrar: el servidor sigue funcionando en la otra
-echo   ventana titulada "Acta Cero - Servidor". No cierres esa para seguir
-echo   usando la aplicacion.
-echo.
-timeout /t 4
+echo   Acta Cero se ha abierto en el navegador. El servidor sigue funcionando
+echo   en segundo plano, sin ninguna ventana. Para pararlo, usa detener_acta.bat.
+echo   Esta ventana se cerrara sola.
+timeout /t 3 /nobreak >nul
 exit /b 0

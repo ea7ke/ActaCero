@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, send_from_directory
+from flask import Flask, jsonify, request, send_from_directory, abort
 from flask_cors import CORS
 import json
 import os
@@ -7,6 +7,19 @@ from urllib.parse import unquote
 
 app = Flask(__name__, static_folder=".", static_url_path="")
 CORS(app)
+
+# Seguridad: aunque el servidor ya arranca escuchando solo en 127.0.0.1 (ver el
+# app.run() al final del archivo), esta comprobación es una segunda barrera:
+# rechaza cualquier peticion cuya IP de origen no sea la del propio ordenador,
+# por si en el futuro alguien cambia el host de escucha sin darse cuenta de
+# las implicaciones de seguridad.
+IPS_PERMITIDAS = {"127.0.0.1", "::1"}
+
+
+@app.before_request
+def restringir_acceso_al_propio_ordenador():
+    if request.remote_addr not in IPS_PERMITIDAS:
+        abort(403)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "datos")
@@ -27,6 +40,19 @@ def ensure_data_dir():
 
 def ensure_firmas_dir():
     os.makedirs(FIRMAS_DIR, exist_ok=True)
+
+
+PID_FILE = os.path.join(BASE_DIR, "acta_cero.pid")
+
+
+def escribir_pid():
+    """Guarda el PID del proceso actual en un fichero, para que detener_acta.bat
+    pueda localizar y cerrar el servidor aunque se ejecute sin ventana visible."""
+    try:
+        with open(PID_FILE, "w") as f:
+            f.write(str(os.getpid()))
+    except OSError:
+        pass
 
 
 def ensure_file(path, default_data):
@@ -574,6 +600,7 @@ def static_files(path):
 if __name__ == "__main__":
     ensure_data_dir()
     ensure_firmas_dir()
+    escribir_pid()
     ensure_file(CONFIG_FILE, {
         "unidadSolicitante": "",
         "jefeInstalacion": {
