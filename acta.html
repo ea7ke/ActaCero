@@ -39,7 +39,7 @@
                 </tr>
             </table>
 
-            <div class="hoja">Hoja 1 de 2</div>
+            <div class="hoja" id="hojaContador1">Hoja 1 de 2</div>
         </div>
     </div>
 
@@ -151,7 +151,7 @@
         </div>
 
         <div class="fecha-reunion solo-hoja">
-            <div class="hoja">Hoja 2 de 2</div>
+            <div class="hoja" id="hojaContador2">Hoja 2 de 2</div>
         </div>
     </div>
 
@@ -173,6 +173,7 @@
                 <img id="firmaTecnicoImg" src="" alt="Firma técnico" class="firma-img">
                 <div class="firma-linea-manual" id="firmaTecnicoManual"></div>
                 <div class="firmado-texto">Firmado: <span id="firmaTecnicoNombre"></span></div>
+                <button type="button" class="btn-firmar solo-pantalla" data-rol="tecnico" onclick="abrirFirmaActa('tecnico')">Firmar</button>
             </div>
         </div>
     </section>
@@ -191,6 +192,7 @@
                 <img id="firmaRepresentanteImg" src="" alt="Firma representante" class="firma-img">
                 <div class="firma-linea-manual" id="firmaRepresentanteManual"></div>
                 <div class="firmado-texto">Firmado: <span id="representanteFirma"></span></div>
+                <button type="button" class="btn-firmar solo-pantalla" data-rol="representante" onclick="abrirFirmaActa('representante')">Firmar</button>
             </div>
         </div>
     </section>
@@ -209,10 +211,24 @@
                 <img id="firmaFirmantePOImg" src="" alt="Firma firmante P.O." class="firma-img">
                 <div class="firma-linea-manual" id="firmaFirmantePOManual"></div>
                 <div class="firmado-texto">Firmado: <span id="firmaFirmantePO"></span></div>
+                <button type="button" class="btn-firmar solo-pantalla" data-rol="firmantePO" onclick="abrirFirmaActa('firmantePO')">Firmar</button>
             </div>
         </div>
     </section>
 </section>
+
+<div id="modalFirmaActa" class="modal-firma oculto solo-pantalla">
+    <div class="modal-firma-contenido">
+        <h3 id="firmaActaTitulo">Firma</h3>
+        <canvas id="canvasFirmaActa" width="500" height="200"></canvas>
+        <div class="modal-firma-acciones">
+            <button type="button" id="btnUsarFirmaGuardadaActa" class="btn-secundario" onclick="usarFirmaGuardadaActa()" hidden>Usar firma guardada</button>
+            <button type="button" class="btn-secundario" onclick="borrarCanvasFirmaActa()">Borrar</button>
+            <button type="button" class="btn-secundario" onclick="cerrarFirmaActa()">Cancelar</button>
+            <button type="button" onclick="guardarFirmaActaDibujada()">Guardar firma</button>
+        </div>
+    </div>
+</div>
 
 <script>
 const datos = JSON.parse(localStorage.getItem("actaCero")) || {};
@@ -296,6 +312,41 @@ poner("firmaFirmantePO", datos.firmantePOJefeNombre);
 poner("fechaInicioTrabajo", formatearFechaVisual(datos.fechaInicio));
 poner("fechaFinTrabajo", formatearFechaVisual(datos.fechaFin));
 
+// Numeración de hojas: solo hay una tercera hoja si se adjuntó una imagen
+const totalPaginas = datos.imagenAdjunta ? 3 : 2;
+poner("hojaContador1", `Hoja 1 de ${totalPaginas}`);
+poner("hojaContador2", `Hoja 2 de ${totalPaginas}`);
+
+if (datos.imagenAdjunta) {
+    crearHojaImagen(datos.imagenAdjunta, totalPaginas);
+}
+
+function crearHojaImagen(dataUrl, total) {
+    const seccion = document.createElement("section");
+    seccion.className = "pagina pagina-imagen";
+    seccion.innerHTML = `
+        <div class="encabezado">
+            <div class="logo">
+                <img src="img/logo-endesa.png" alt="Logo Endesa">
+            </div>
+            <div class="titulo">
+                ACTA DE REUNIÓN PREVIA PARA<br>
+                LA PLANIFICACIÓN DE TRABAJOS<br>
+                EN SUBESTACIONES Y LAT
+            </div>
+            <div class="fecha-reunion solo-hoja">
+                <div class="hoja">Hoja ${total} de ${total}</div>
+            </div>
+        </div>
+        <div class="imagen-adjunta-titulo">IMAGEN ADJUNTA</div>
+        <div class="imagen-adjunta-contenedor">
+            <img src="${dataUrl}" alt="Imagen adjunta al acta">
+        </div>
+    `;
+
+    document.querySelector(".pagina-cajas").insertAdjacentElement("afterend", seccion);
+}
+
 const fecha = formatearFecha(datos.fecha);
 poner("dia", fecha.dia);
 poner("mes", fecha.mes);
@@ -305,9 +356,152 @@ actualizarLineasSegunContenido("descripcionTrabajo");
 actualizarLineasSegunContenido("textoContratista");
 actualizarLineasSegunContenido("textoJI");
 
-configurarFirma("firmaTecnicoImg", "firmaTecnicoManual", datos.tecnicoUsarFirma, datos.tecnicoFirma);
-configurarFirma("firmaRepresentanteImg", "firmaRepresentanteManual", datos.representanteUsarFirma, datos.representanteFirma);
-configurarFirma("firmaFirmantePOImg", "firmaFirmantePOManual", datos.firmantePOJefeUsarFirma, datos.firmantePOJefeFirma);
+// El acta se genera SIN firmar. Las firmas se aplican después, a través del
+// proceso guiado que arranca el botón "Firmar" de cada bloque (ver más abajo).
+configurarFirma("firmaTecnicoImg", "firmaTecnicoManual", false, "");
+configurarFirma("firmaRepresentanteImg", "firmaRepresentanteManual", false, "");
+configurarFirma("firmaFirmantePOImg", "firmaFirmantePOManual", false, "");
+
+// ---------------- FIRMA INTERACTIVA (lápiz) ----------------
+
+// Cada rol conoce sus elementos en el DOM y la ruta de la firma ya guardada
+// en Administración (si existe), para poder ofrecer "usar firma guardada".
+const ROLES_FIRMA = {
+    tecnico: {
+        imgId: "firmaTecnicoImg",
+        lineaId: "firmaTecnicoManual",
+        nombre: datos.tecnico || "",
+        firmaGuardada: datos.tecnicoFirma || ""
+    },
+    representante: {
+        imgId: "firmaRepresentanteImg",
+        lineaId: "firmaRepresentanteManual",
+        nombre: datos.representante || "",
+        firmaGuardada: datos.representanteFirma || ""
+    },
+    firmantePO: {
+        imgId: "firmaFirmantePOImg",
+        lineaId: "firmaFirmantePOManual",
+        nombre: datos.firmantePOJefeNombre || "",
+        firmaGuardada: datos.firmantePOJefeFirma || ""
+    }
+};
+
+let rolFirmaActual = null;
+let ctxFirmaActa = null;
+let dibujandoFirmaActa = false;
+
+function abrirFirmaActa(rol) {
+    const config = ROLES_FIRMA[rol];
+    if (!config) return;
+
+    rolFirmaActual = rol;
+
+    document.getElementById("firmaActaTitulo").textContent = config.nombre
+        ? `Firma de ${config.nombre}`
+        : "Firma";
+
+    const btnUsarGuardada = document.getElementById("btnUsarFirmaGuardadaActa");
+    btnUsarGuardada.hidden = !config.firmaGuardada;
+
+    const canvas = document.getElementById("canvasFirmaActa");
+    ctxFirmaActa = canvas.getContext("2d");
+    ctxFirmaActa.clearRect(0, 0, canvas.width, canvas.height);
+    ctxFirmaActa.lineWidth = 2.5;
+    ctxFirmaActa.lineCap = "round";
+    ctxFirmaActa.lineJoin = "round";
+    ctxFirmaActa.strokeStyle = "#000000";
+
+    document.getElementById("modalFirmaActa").classList.remove("oculto");
+}
+
+function cerrarFirmaActa() {
+    document.getElementById("modalFirmaActa").classList.add("oculto");
+    rolFirmaActual = null;
+}
+
+function borrarCanvasFirmaActa() {
+    const canvas = document.getElementById("canvasFirmaActa");
+    if (ctxFirmaActa) ctxFirmaActa.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function posicionEnCanvasActa(canvas, evento) {
+    const rect = canvas.getBoundingClientRect();
+    const escalaX = canvas.width / rect.width;
+    const escalaY = canvas.height / rect.height;
+    return {
+        x: (evento.clientX - rect.left) * escalaX,
+        y: (evento.clientY - rect.top) * escalaY
+    };
+}
+
+function inicializarCanvasFirmaActa() {
+    const canvas = document.getElementById("canvasFirmaActa");
+    if (!canvas) return;
+
+    canvas.addEventListener("pointerdown", (evento) => {
+        dibujandoFirmaActa = true;
+        canvas.setPointerCapture(evento.pointerId);
+        const pos = posicionEnCanvasActa(canvas, evento);
+        ctxFirmaActa.beginPath();
+        ctxFirmaActa.moveTo(pos.x, pos.y);
+        evento.preventDefault();
+    });
+
+    canvas.addEventListener("pointermove", (evento) => {
+        if (!dibujandoFirmaActa) return;
+        const pos = posicionEnCanvasActa(canvas, evento);
+        ctxFirmaActa.lineTo(pos.x, pos.y);
+        ctxFirmaActa.stroke();
+        evento.preventDefault();
+    });
+
+    ["pointerup", "pointerleave", "pointercancel"].forEach(nombreEvento => {
+        canvas.addEventListener(nombreEvento, () => {
+            dibujandoFirmaActa = false;
+        });
+    });
+}
+
+function canvasFirmaActaTieneTrazo(canvas) {
+    const pixeles = ctxFirmaActa.getImageData(0, 0, canvas.width, canvas.height).data;
+    for (let i = 3; i < pixeles.length; i += 4) {
+        if (pixeles[i] !== 0) return true; // canal alfa distinto de 0 = hay algo dibujado
+    }
+    return false;
+}
+
+function guardarFirmaActaDibujada() {
+    const canvas = document.getElementById("canvasFirmaActa");
+
+    if (!canvasFirmaActaTieneTrazo(canvas)) {
+        alert("Dibuja la firma antes de guardar, o usa \"Usar firma guardada\" si hay una disponible.");
+        return;
+    }
+
+    aplicarFirmaActa(rolFirmaActual, canvas.toDataURL("image/png"));
+    cerrarFirmaActa();
+}
+
+function usarFirmaGuardadaActa() {
+    const config = ROLES_FIRMA[rolFirmaActual];
+    if (!config || !config.firmaGuardada) return;
+
+    aplicarFirmaActa(rolFirmaActual, `/${config.firmaGuardada}`);
+    cerrarFirmaActa();
+}
+
+function aplicarFirmaActa(rol, src) {
+    const config = ROLES_FIRMA[rol];
+    if (!config) return;
+
+    configurarFirma(config.imgId, config.lineaId, true, src);
+
+    const boton = document.querySelector(`.btn-firmar[data-rol="${rol}"]`);
+    if (boton) boton.textContent = "Volver a firmar";
+}
+
+window.addEventListener("load", inicializarCanvasFirmaActa);
 </script>
 
 </body>

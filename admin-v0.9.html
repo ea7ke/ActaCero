@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Administración Acta Cero</title>
+    <link rel="stylesheet" href="css/admin.css">
+    <script src="js/admin.js" defer></script>
+    <style>
+        .oculto {
+            display: none;
+        }
+
+        .campo-firma-acciones {
+            display: flex;
+            gap: 8px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+
+        .campo-firma-acciones button {
+            font-size: 13px;
+            padding: 6px 12px;
+        }
+
+        .firma-preview {
+            display: block;
+            max-width: 180px;
+            max-height: 60px;
+            margin-top: 8px;
+            border: 1px dashed #999;
+            padding: 4px;
+            background:
+                linear-gradient(45deg, #eee 25%, transparent 25%) -4px 0/ 8px 8px,
+                linear-gradient(-45deg, #eee 25%, transparent 25%) -4px 0/ 8px 8px,
+                linear-gradient(45deg, transparent 75%, #eee 75%) -4px 0/ 8px 8px,
+                linear-gradient(-45deg, transparent 75%, #eee 75%) -4px 0/ 8px 8px;
+        }
+
+        .modal-firma {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-firma.oculto {
+            display: none;
+        }
+
+        .modal-firma-contenido {
+            background: #fff;
+            border-radius: 8px;
+            padding: 16px;
+            max-width: 95vw;
+        }
+
+        .modal-firma-contenido h3 {
+            margin-top: 0;
+        }
+
+        #canvasFirma {
+            display: block;
+            width: min(600px, 90vw);
+            height: 250px;
+            border: 1px dashed #999;
+            touch-action: none;
+            background:
+                linear-gradient(45deg, #f2f2f2 25%, transparent 25%) 0 0/ 10px 10px,
+                linear-gradient(-45deg, #f2f2f2 25%, transparent 25%) 0 0/ 10px 10px,
+                linear-gradient(45deg, transparent 75%, #f2f2f2 75%) 0 0/ 10px 10px,
+                linear-gradient(-45deg, transparent 75%, #f2f2f2 75%) 0 0/ 10px 10px;
+            cursor: crosshair;
+        }
+
+        .modal-firma-acciones {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="contenedor">
+        <h1>Administración</h1>
+
+        <div class="acciones-superiores">
+            <a class="btn-secundario" href="/">Ir al formulario</a>
+        </div>
+
+        <section>
+            <h2>Configuración</h2>
+
+            <div class="bloque-config">
+                <h3>Unidad solicitante</h3>
+                <div class="fila-admin">
+                    <input id="cfgUnidad" placeholder="Unidad solicitante">
+                </div>
+            </div>
+
+            <div class="bloque-config">
+                <h3>Jefe de Instalación</h3>
+                <div class="fila-admin">
+                    <input id="cfgJefeNombre" placeholder="Nombre del jefe">
+                    <input id="cfgJefeFirma" placeholder="Ruta firma jefe (ej: img/firma-jefe.png)">
+                </div>
+                <div class="campo-firma-acciones">
+                    <button type="button" class="btn-secundario" onclick="document.getElementById('cfgJefeFirmaArchivo').click()">Subir imagen</button>
+                    <input type="file" id="cfgJefeFirmaArchivo" accept="image/png,image/jpeg" hidden onchange="subirArchivoFirma(this, 'cfgJefeFirma')">
+                    <button type="button" class="btn-secundario" onclick="abrirModalFirma('cfgJefeFirma')">Firmar con lápiz</button>
+                </div>
+                <img id="cfgJefeFirmaPreview" class="firma-preview" alt="Vista previa firma jefe" hidden>
+                <div class="fila-check">
+                    <label class="check-label">
+                        <input type="checkbox" id="cfgJefeUsarFirma">
+                        Usar firma automática del jefe
+                    </label>
+                </div>
+            </div>
+
+            <div class="bloque-config">
+                <h3>Firmante P.O. del Jefe de la Instalación</h3>
+                <div class="fila-admin">
+                    <input id="cfgFirmantePONombre" placeholder="Nombre del firmante P.O.">
+                    <input id="cfgFirmantePOFirma" placeholder="Ruta firma (ej: img/firma-arturo.png)">
+                </div>
+                <div class="campo-firma-acciones">
+                    <button type="button" class="btn-secundario" onclick="document.getElementById('cfgFirmantePOFirmaArchivo').click()">Subir imagen</button>
+                    <input type="file" id="cfgFirmantePOFirmaArchivo" accept="image/png,image/jpeg" hidden onchange="subirArchivoFirma(this, 'cfgFirmantePOFirma')">
+                    <button type="button" class="btn-secundario" onclick="abrirModalFirma('cfgFirmantePOFirma')">Firmar con lápiz</button>
+                </div>
+                <img id="cfgFirmantePOFirmaPreview" class="firma-preview" alt="Vista previa firma firmante P.O." hidden>
+                <div class="fila-check">
+                    <label class="check-label">
+                        <input type="checkbox" id="cfgFirmantePOUsarFirma">
+                        Usar firma automática del firmante P.O.
+                    </label>
+                </div>
+            </div>
+
+            <div class="fila-admin">
+                <button type="button" onclick="guardarConfiguracion()">Guardar configuración</button>
+            </div>
+        </section>
+
+        <section>
+            <h2>Técnicos solicitantes</h2>
+
+            <div class="fila-admin">
+                <input id="nuevoTecnicoNombre" placeholder="Nombre del técnico">
+                <input id="nuevoTecnicoArea" placeholder="Área">
+                <input id="nuevoTecnicoFirma" placeholder="Ruta firma (ej: img/firma-arturo.png)">
+            </div>
+
+            <div class="campo-firma-acciones">
+                <button type="button" class="btn-secundario" onclick="document.getElementById('nuevoTecnicoFirmaArchivo').click()">Subir imagen</button>
+                <input type="file" id="nuevoTecnicoFirmaArchivo" accept="image/png,image/jpeg" hidden onchange="subirArchivoFirma(this, 'nuevoTecnicoFirma')">
+                <button type="button" class="btn-secundario" onclick="abrirModalFirma('nuevoTecnicoFirma')">Firmar con lápiz</button>
+            </div>
+            <img id="nuevoTecnicoFirmaPreview" class="firma-preview" alt="Vista previa firma técnico" hidden>
+
+            <div class="fila-check">
+                <label class="check-label">
+                    <input type="checkbox" id="nuevoTecnicoUsarFirma">
+                    Usar firma automática
+                </label>
+            </div>
+
+            <div class="fila-admin">
+                <button type="button" onclick="crearTecnico()">Añadir técnico</button>
+            </div>
+
+            <div id="listaTecnicos"></div>
+        </section>
+
+        <section>
+            <div class="cabecera-seccion">
+                <h2>Subestaciones</h2>
+                <div class="acciones-inline">
+                    <input id="nuevaSubestacion" placeholder="Nueva subestación">
+                    <button type="button" onclick="crearSubestacion()">Añadir</button>
+                </div>
+            </div>
+
+            <div class="layout-master-detail">
+                <div class="panel-lista">
+                    <input id="filtroSubestaciones" placeholder="Buscar subestación..." oninput="renderSubestacionesLista()">
+                    <div id="listaSubestaciones" class="lista-scroll"></div>
+                </div>
+
+                <div class="panel-detalle">
+                    <div id="detalleSubestacion" class="detalle-vacio">
+                        Selecciona una subestación para editarla.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <div class="cabecera-seccion">
+                <h2>Contratistas</h2>
+                <div class="acciones-inline">
+                    <input id="nuevoContratista" placeholder="Nueva contrata">
+                    <button type="button" onclick="crearContratista()">Añadir</button>
+                </div>
+            </div>
+
+            <div class="layout-master-detail">
+                <div class="panel-lista">
+                    <input id="filtroContratistas" placeholder="Buscar contrata..." oninput="renderContratistasLista()">
+                    <div id="listaContratistas" class="lista-scroll"></div>
+                </div>
+
+                <div class="panel-detalle">
+                    <div id="detalleContratista" class="detalle-vacio">
+                        Selecciona una contrata para editarla.
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div id="modalFirma" class="modal-firma oculto">
+        <div class="modal-firma-contenido">
+            <h3>Firmar con lápiz</h3>
+            <canvas id="canvasFirma" width="600" height="250"></canvas>
+            <div class="modal-firma-acciones">
+                <button type="button" class="btn-secundario" onclick="borrarCanvasFirma()">Borrar</button>
+                <button type="button" class="btn-secundario" onclick="cerrarModalFirma()">Cancelar</button>
+                <button type="button" onclick="guardarFirmaCanvas()">Guardar firma</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

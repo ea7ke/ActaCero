@@ -220,11 +220,38 @@ function cambiarTecnico() {
     }
 }
 
-function generarActa() {
+function leerArchivoComoDataUrl(archivo) {
+    return new Promise((resolve, reject) => {
+        const lector = new FileReader();
+        lector.onload = () => resolve(lector.result);
+        lector.onerror = () => reject(new Error("No se pudo leer la imagen adjunta"));
+        lector.readAsDataURL(archivo);
+    });
+}
+
+async function generarActa() {
     const datosConfig = window.__configuracionActual || {};
     const firmantePOConfig = datosConfig.firmantePOJefe || {};
     const tecnicoActual = tecnicoSeleccionado || {};
     const representanteActual = representanteSeleccionado || {};
+
+    let imagenAdjunta = "";
+    const archivoImagen = document.getElementById("imagenAdjunta")?.files[0] || null;
+
+    if (archivoImagen) {
+        const TAMANO_MAXIMO = 4 * 1024 * 1024; // 4 MB
+        if (archivoImagen.size > TAMANO_MAXIMO) {
+            alert("La imagen adjunta no puede superar los 4 MB. Elige una imagen más ligera.");
+            return;
+        }
+
+        try {
+            imagenAdjunta = await leerArchivoComoDataUrl(archivoImagen);
+        } catch (error) {
+            alert(error.message);
+            return;
+        }
+    }
 
     const datos = {
         fecha: document.getElementById("fecha")?.value || "",
@@ -253,7 +280,8 @@ function generarActa() {
         textoJI: document.getElementById("textoJI")?.value || "",
         firmantePOJefeNombre: firmantePOConfig.nombre || "",
         firmantePOJefeFirma: firmantePOConfig.firma || "",
-        firmantePOJefeUsarFirma: !!firmantePOConfig.usarFirma
+        firmantePOJefeUsarFirma: !!firmantePOConfig.usarFirma,
+        imagenAdjunta
     };
 
     localStorage.setItem("actaCero", JSON.stringify(datos));

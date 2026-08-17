@@ -81,6 +81,220 @@
             gap: 8px;
             margin-top: 12px;
         }
+        .firma-preview-vacia {
+            opacity: 0.85;
+        }
+
+        /* ---------- Técnicos: cuadrícula de tarjetas ---------- */
+        #listaTecnicos {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(235px, 1fr));
+            gap: 14px;
+            margin-top: 12px;
+        }
+
+        .card-admin {
+            border: 1px solid #e2e5ea;
+            border-radius: 10px;
+            padding: 13px 15px;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(20, 30, 50, 0.06);
+            transition: box-shadow .15s ease, transform .15s ease;
+        }
+
+        .card-admin:hover {
+            box-shadow: 0 5px 14px rgba(20, 30, 50, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 15px;
+            line-height: 1.3;
+        }
+
+        .card-admin .btn-peligro {
+            font-size: 12px;
+            padding: 4px 9px;
+            flex: 0 0 auto;
+        }
+
+        .card-linea {
+            font-size: 13px;
+            color: #444;
+            margin-top: 2px;
+        }
+
+        .card-firma-thumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+            padding-top: 9px;
+            border-top: 1px dashed #e5e7eb;
+        }
+
+        .card-firma-thumb img {
+            width: 76px;
+            height: 32px;
+            object-fit: contain;
+            border: 1px solid #dde1e6;
+            border-radius: 5px;
+            background: #fafafa;
+            flex: 0 0 auto;
+        }
+
+        .estado-firma {
+            font-size: 11.5px;
+        }
+
+        .badge-si {
+            color: #157347;
+            font-weight: 600;
+        }
+
+        .badge-no {
+            color: #97999e;
+        }
+
+        /* ---------- Listas maestro-detalle: subestaciones / contratas ---------- */
+        .lista-scroll {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .item-lista {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            text-align: left;
+            padding: 8px 10px;
+            border: none;
+            border-left: 3px solid transparent;
+            background: #fff;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+            color: #222;
+            transition: background .12s ease, border-color .12s ease;
+        }
+
+        .item-lista:hover {
+            background: #f2f6fb;
+        }
+
+        .item-lista.activo {
+            background: #e8f0fb;
+            border-left-color: #1f6fb2;
+            font-weight: 600;
+        }
+
+        .avatar-inicial {
+            flex: 0 0 auto;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #1f6fb2;
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-transform: uppercase;
+        }
+
+        /* ---------- Chips: parques / posiciones ---------- */
+        .chips-lista {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            list-style: none;
+            padding: 0;
+            margin: 8px 0 14px 0;
+        }
+
+        .chip-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            background: #eef2f6;
+            border: 1px solid #dde3ea;
+            border-radius: 999px;
+            padding: 5px 6px 5px 13px;
+            font-size: 13px;
+            color: #2b2f34;
+        }
+
+        .chip-item .btn-mini {
+            width: 19px;
+            height: 19px;
+            line-height: 17px;
+            padding: 0;
+            border-radius: 50%;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        /* ---------- Tarjetas de representante (mas info que un chip) ---------- */
+        .reps-lista {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            list-style: none;
+            padding: 0;
+            margin: 8px 0 14px 0;
+        }
+
+        .rep-card {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid #e2e5ea;
+            border-radius: 8px;
+            padding: 7px 10px;
+            background: #fff;
+        }
+
+        .rep-card img {
+            width: 58px;
+            height: 26px;
+            object-fit: contain;
+            border: 1px solid #dde1e6;
+            border-radius: 4px;
+            background: #fafafa;
+            flex: 0 0 auto;
+        }
+
+        .rep-info {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        .rep-nombre {
+            font-size: 13.5px;
+            font-weight: 600;
+            color: #222;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .rep-acciones {
+            display: flex;
+            gap: 6px;
+            flex: 0 0 auto;
+        }
     </style>
 </head>
 <body>
@@ -112,7 +326,7 @@
                     <input type="file" id="cfgJefeFirmaArchivo" accept="image/png,image/jpeg" hidden onchange="subirArchivoFirma(this, 'cfgJefeFirma')">
                     <button type="button" class="btn-secundario" onclick="abrirModalFirma('cfgJefeFirma')">Firmar con lápiz</button>
                 </div>
-                <img id="cfgJefeFirmaPreview" class="firma-preview" alt="Vista previa firma jefe" hidden>
+                <img id="cfgJefeFirmaPreview" class="firma-preview" alt="Vista previa firma jefe">
                 <div class="fila-check">
                     <label class="check-label">
                         <input type="checkbox" id="cfgJefeUsarFirma">
@@ -132,7 +346,7 @@
                     <input type="file" id="cfgFirmantePOFirmaArchivo" accept="image/png,image/jpeg" hidden onchange="subirArchivoFirma(this, 'cfgFirmantePOFirma')">
                     <button type="button" class="btn-secundario" onclick="abrirModalFirma('cfgFirmantePOFirma')">Firmar con lápiz</button>
                 </div>
-                <img id="cfgFirmantePOFirmaPreview" class="firma-preview" alt="Vista previa firma firmante P.O." hidden>
+                <img id="cfgFirmantePOFirmaPreview" class="firma-preview" alt="Vista previa firma firmante P.O.">
                 <div class="fila-check">
                     <label class="check-label">
                         <input type="checkbox" id="cfgFirmantePOUsarFirma">
@@ -160,7 +374,7 @@
                 <input type="file" id="nuevoTecnicoFirmaArchivo" accept="image/png,image/jpeg" hidden onchange="subirArchivoFirma(this, 'nuevoTecnicoFirma')">
                 <button type="button" class="btn-secundario" onclick="abrirModalFirma('nuevoTecnicoFirma')">Firmar con lápiz</button>
             </div>
-            <img id="nuevoTecnicoFirmaPreview" class="firma-preview" alt="Vista previa firma técnico" hidden>
+            <img id="nuevoTecnicoFirmaPreview" class="firma-preview" alt="Vista previa firma técnico">
 
             <div class="fila-check">
                 <label class="check-label">

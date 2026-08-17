@@ -48,6 +48,14 @@ body {
     background: #00447a;
 }
 
+/* A diferencia de .no-print (que además posiciona el botón "Generar PDF" fijo
+   en la esquina), esta clase solo oculta el elemento al imprimir/generar PDF. */
+@media print {
+    .solo-pantalla {
+        display: none !important;
+    }
+}
+
 .pagina {
     width: 190mm;
     height: 275mm;
@@ -218,6 +226,38 @@ li {
     margin-bottom: 8px;
 }
 
+.pagina-imagen {
+    display: flex;
+    flex-direction: column;
+}
+
+.pagina-imagen .encabezado {
+    margin-bottom: 8px;
+}
+
+.imagen-adjunta-titulo {
+    font-weight: 700;
+    font-size: 11px;
+    text-transform: uppercase;
+    margin: 4px 0 10px 10px;
+}
+
+.imagen-adjunta-contenedor {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 4px 10px 10px 10px;
+}
+
+.imagen-adjunta-contenedor img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border: 1px solid #ccc;
+}
+
 .caja {
     border: 1px solid #222;
     background: #fff;
@@ -337,6 +377,95 @@ li {
 
 .firma-oculta {
     display: none !important;
+}
+
+.btn-firmar {
+    margin-top: 8px;
+    padding: 5px 14px;
+    font-size: 12px;
+    font-weight: 700;
+    color: #fff;
+    background: #005ea8;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.btn-firmar:hover {
+    background: #00447a;
+}
+
+.oculto {
+    display: none !important;
+}
+
+.modal-firma {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal-firma-contenido {
+    background: #fff;
+    border-radius: 8px;
+    padding: 16px;
+    max-width: 95vw;
+    font-size: 13px;
+}
+
+.modal-firma-contenido h3 {
+    margin: 0 0 12px 0;
+    font-size: 15px;
+}
+
+#canvasFirmaActa {
+    display: block;
+    width: min(500px, 90vw);
+    height: 200px;
+    border: 1px dashed #999;
+    touch-action: none;
+    cursor: crosshair;
+    background:
+        linear-gradient(45deg, #f2f2f2 25%, transparent 25%) 0 0/ 10px 10px,
+        linear-gradient(-45deg, #f2f2f2 25%, transparent 25%) 0 0/ 10px 10px,
+        linear-gradient(45deg, transparent 75%, #f2f2f2 75%) 0 0/ 10px 10px,
+        linear-gradient(-45deg, transparent 75%, #f2f2f2 75%) 0 0/ 10px 10px;
+}
+
+.modal-firma-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+}
+
+.modal-firma-acciones button {
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    background: #005ea8;
+    color: #fff;
+}
+
+.modal-firma-acciones button:hover {
+    background: #00447a;
+}
+
+.modal-firma-acciones .btn-secundario {
+    background: #e5e7eb;
+    color: #222;
+}
+
+.modal-firma-acciones .btn-secundario:hover {
+    background: #d3d6db;
 }
 
 @media print {

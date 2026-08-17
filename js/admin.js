@@ -18,6 +18,10 @@ async function cargarTodo() {
         cargarContratistas(),
         cargarTecnicos()
     ]);
+
+    // El formulario de "nuevo técnico" es estático en el HTML (no se regenera),
+    // así que su vista previa de firma se inicializa aquí una sola vez.
+    actualizarPreviewFirma("nuevoTecnicoFirma", "");
 }
 
 async function cargarConfiguracion() {
@@ -111,9 +115,11 @@ function renderTecnicos() {
                     <h3>${escapeHtml(t.nombre || "")}</h3>
                     <button class="btn-peligro" type="button" onclick="eliminarTecnico('${escapeJs(t.id)}')">Eliminar</button>
                 </div>
-                <div><strong>Área:</strong> ${escapeHtml(t.area || "")}</div>
-                <div><strong>Firma:</strong> ${escapeHtml(t.firma || "")}</div>
-                <div><strong>Usar firma:</strong> ${t.usarFirma ? "Sí" : "No"}</div>
+                <div class="card-linea"><strong>Área:</strong> ${escapeHtml(t.area || "") || "—"}</div>
+                <div class="card-firma-thumb">
+                    <img src="${t.firma ? `/${escapeHtml(t.firma)}` : FIRMA_PLACEHOLDER}" alt="Firma de ${escapeHtml(t.nombre || "")}">
+                    <span class="estado-firma">${t.usarFirma ? '<span class="badge-si">Firma activa</span>' : '<span class="badge-no">Sin usar</span>'}</span>
+                </div>
             </div>
         `)
         .join("");
@@ -224,7 +230,8 @@ function renderSubestacionesLista() {
             onclick="seleccionarSubestacion('${escapeJs(nombre)}')"
             type="button"
         >
-            ${escapeHtml(nombre)}
+            <span class="avatar-inicial">${escapeHtml(nombre.charAt(0) || "?")}</span>
+            <span>${escapeHtml(nombre)}</span>
         </button>
     `).join("");
 }
@@ -449,7 +456,8 @@ function renderContratistasLista() {
             onclick="seleccionarContratista('${escapeJs(nombre)}')"
             type="button"
         >
-            ${escapeHtml(nombre)}
+            <span class="avatar-inicial">${escapeHtml(nombre.charAt(0) || "?")}</span>
+            <span>${escapeHtml(nombre)}</span>
         </button>
     `).join("");
 }
@@ -483,13 +491,19 @@ function renderDetalleContratista() {
 
             <div class="bloque-admin">
                 <h4>Representantes</h4>
-                <ul class="chips-lista">
+                <ul class="reps-lista">
                     ${reps.length
                         ? reps.map(rep => `
-                            <li class="chip-item">
-                                <span>${escapeHtml(rep.nombre || "")}${rep.usarFirma ? " · firma ✓" : ""}</span>
-                                <button class="btn-secundario btn-mini" type="button" onclick="editarRepresentante('${escapeJs(contratistaSeleccionado)}', '${escapeJs(rep.nombre)}')">Editar</button>
-                                <button class="btn-peligro btn-mini" type="button" onclick="eliminarRepresentante('${escapeJs(contratistaSeleccionado)}', '${escapeJs(rep.nombre)}')">x</button>
+                            <li class="rep-card">
+                                <img src="${rep.firma ? `/${escapeHtml(rep.firma)}` : FIRMA_PLACEHOLDER}" alt="Firma de ${escapeHtml(rep.nombre || "")}">
+                                <div class="rep-info">
+                                    <div class="rep-nombre">${escapeHtml(rep.nombre || "")}</div>
+                                    <div class="estado-firma">${rep.usarFirma ? '<span class="badge-si">Firma activa</span>' : '<span class="badge-no">Sin usar</span>'}</div>
+                                </div>
+                                <div class="rep-acciones">
+                                    <button class="btn-secundario btn-mini" type="button" onclick="editarRepresentante('${escapeJs(contratistaSeleccionado)}', '${escapeJs(rep.nombre)}')">Editar</button>
+                                    <button class="btn-peligro btn-mini" type="button" onclick="eliminarRepresentante('${escapeJs(contratistaSeleccionado)}', '${escapeJs(rep.nombre)}')">x</button>
+                                </div>
                             </li>
                         `).join("")
                         : `<li class="detalle-vacio">Sin representantes.</li>`
@@ -505,7 +519,7 @@ function renderDetalleContratista() {
                     <input type="file" id="nuevoRepresentanteFirmaArchivo" accept="image/png,image/jpeg" hidden onchange="subirArchivoFirma(this, 'nuevoRepresentanteFirma')">
                     <button type="button" class="btn-secundario" onclick="abrirModalFirma('nuevoRepresentanteFirma')">Firmar con lápiz</button>
                 </div>
-                <img id="nuevoRepresentanteFirmaPreview" class="firma-preview" alt="Vista previa firma representante" hidden>
+                <img id="nuevoRepresentanteFirmaPreview" class="firma-preview" alt="Vista previa firma representante" src="${FIRMA_PLACEHOLDER}">
                 <div class="fila-check">
                     <label class="check-label">
                         <input type="checkbox" id="nuevoRepresentanteUsarFirma">
@@ -670,6 +684,15 @@ function escapeJs(texto) {
 
 // ---------------- FIRMAS: subida de imagen y previsualización ----------------
 
+// Imagen de aviso "sin firma" (SVG en línea, no depende de ningún archivo externo)
+const FIRMA_PLACEHOLDER = "data:image/svg+xml;utf8," + encodeURIComponent(`
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="70" viewBox="0 0 200 70">
+    <rect x="1" y="1" width="198" height="68" rx="8" fill="#f7f7f8" stroke="#c9ccd1" stroke-width="1.5" stroke-dasharray="5 4"/>
+    <path d="M28 42 Q 38 18, 52 38 T 82 33 Q 96 16, 112 38 T 150 30" fill="none" stroke="#b7bbc2" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="100" y="59" font-family="Arial, sans-serif" font-size="10" fill="#9a9ea5" text-anchor="middle">Sin firma configurada</text>
+</svg>
+`.trim());
+
 // Relaciona cada campo de firma con su checkbox "usar firma automática",
 // para marcarlo solo cuando corresponde al subir/dibujar una firma nueva.
 const CHECKBOX_USAR_FIRMA = {
@@ -679,32 +702,30 @@ const CHECKBOX_USAR_FIRMA = {
     nuevoRepresentanteFirma: "nuevoRepresentanteUsarFirma"
 };
 
-function mostrarPreviewExistente(targetInputId, ruta) {
-    if (!ruta) return;
+// Punto único que decide qué se muestra en cada vista previa de firma:
+// la imagen real si existe, o si no un aviso visual de "sin firma" (nunca queda vacío).
+function actualizarPreviewFirma(targetInputId, ruta) {
     const preview = document.getElementById(`${targetInputId}Preview`);
     if (!preview) return;
-    preview.src = `/${ruta}`;
+
     preview.hidden = false;
+    preview.src = ruta ? `/${ruta}?t=${Date.now()}` : FIRMA_PLACEHOLDER;
+    preview.classList.toggle("firma-preview-vacia", !ruta);
+}
+
+function mostrarPreviewExistente(targetInputId, ruta) {
+    actualizarPreviewFirma(targetInputId, ruta || "");
 }
 
 function ocultarPreview(targetInputId) {
-    const preview = document.getElementById(`${targetInputId}Preview`);
-    if (preview) {
-        preview.hidden = true;
-        preview.removeAttribute("src");
-    }
+    actualizarPreviewFirma(targetInputId, "");
 }
 
 function aplicarRutaFirma(targetInputId, ruta) {
     const input = document.getElementById(targetInputId);
     if (input) input.value = ruta;
 
-    const preview = document.getElementById(`${targetInputId}Preview`);
-    if (preview) {
-        // Se añade un parámetro para evitar que el navegador muestre una versión cacheada antigua
-        preview.src = `/${ruta}?t=${Date.now()}`;
-        preview.hidden = false;
-    }
+    actualizarPreviewFirma(targetInputId, ruta);
 
     const checkboxId = CHECKBOX_USAR_FIRMA[targetInputId];
     if (checkboxId) {
