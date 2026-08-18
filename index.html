@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Acta Cero</title>
     <link rel="stylesheet" href="css/estilos.css">
+    <script src="js/acta-archivo.js" defer></script>
     <script src="js/app.js" defer></script>
     <style>
         .multi-select-lista {
@@ -41,6 +42,46 @@
             font-size: 12px;
             color: #888;
         }
+
+        .imagenes-adjuntas-lista {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .imagen-adjunta-item {
+            position: relative;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 4px;
+            background: #fff;
+        }
+
+        .imagen-adjunta-item img {
+            display: block;
+            max-width: 140px;
+            max-height: 100px;
+        }
+
+        .imagen-adjunta-quitar {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            border: none;
+            background: #c0392b;
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .imagen-adjunta-quitar:hover {
+            background: #922b21;
+        }
     </style>
 </head>
 <body>
@@ -51,6 +92,9 @@
 
     <div class="acciones-superiores">
         <a class="btn-secundario" href="/admin.html">Administración</a>
+        <button type="button" class="btn-secundario" onclick="guardarActaArchivo()">Guardar acta</button>
+        <button type="button" class="btn-secundario" onclick="document.getElementById('abrirActaInput').click()">Abrir acta</button>
+        <input type="file" id="abrirActaInput" accept="application/json,.json" hidden onchange="abrirActaArchivo(this)">
     </div>
 
     <div class="fila">
@@ -193,8 +237,9 @@
 
     <div class="fila">
         <div class="campo">
-            <label for="imagenAdjunta">Imagen adjunta <span class="ayuda-campo">(opcional — si se adjunta, se añade como hoja 3 del acta)</span></label>
-            <input type="file" id="imagenAdjunta" accept="image/png,image/jpeg">
+            <label for="imagenAdjunta">Imágenes adjuntas <span class="ayuda-campo">(opcional — cada una se añade como una hoja del acta)</span></label>
+            <input type="file" id="imagenAdjunta" accept="image/png,image/jpeg" multiple onchange="agregarImagenesAdjuntas(this)">
+            <div id="imagenesAdjuntasLista" class="imagenes-adjuntas-lista"></div>
         </div>
     </div>
 

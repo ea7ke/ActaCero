@@ -4,6 +4,11 @@ let tecnicos = [];
 let tecnicoSeleccionado = null;
 let representanteSeleccionado = null;
 
+// Firmas ya capturadas en una sesión anterior (al abrir un acta guardada
+// que alguien ya empezó a firmar). Se reenvían tal cual al generar/guardar
+// de nuevo, para no perderlas.
+let firmasAplicadasCargadas = {};
+
 window.addEventListener("load", async () => {
     try {
         const hoy = new Date().toISOString().split("T")[0];
@@ -220,6 +225,14 @@ function cambiarTecnico() {
     }
 }
 
+const MAX_IMAGENES_ADJUNTAS = 8;
+const TAMANO_MAXIMO_IMAGEN = 4 * 1024 * 1024; // 4 MB por imagen
+
+// Lista de imágenes adjuntas actuales: [{ dataUrl }, ...]. Se va acumulando
+// cada vez que se eligen archivos (no se sustituye lo ya añadido), y cada una
+// se puede quitar individualmente.
+let imagenesAdjuntasDatos = [];
+
 function leerArchivoComoDataUrl(archivo) {
     return new Promise((resolve, reject) => {
         const lector = new FileReader();
@@ -229,31 +242,60 @@ function leerArchivoComoDataUrl(archivo) {
     });
 }
 
-async function generarActa() {
+function renderizarImagenesAdjuntas() {
+    const contenedor = document.getElementById("imagenesAdjuntasLista");
+    if (!contenedor) return;
+
+    contenedor.innerHTML = imagenesAdjuntasDatos
+        .map((item, indice) => `
+            <div class="imagen-adjunta-item">
+                <img src="${item.dataUrl}" alt="Imagen adjunta ${indice + 1}">
+                <button type="button" class="imagen-adjunta-quitar" title="Quitar esta imagen" onclick="quitarImagenAdjunta(${indice})">×</button>
+            </div>
+        `)
+        .join("");
+}
+
+function quitarImagenAdjunta(indice) {
+    imagenesAdjuntasDatos.splice(indice, 1);
+    renderizarImagenesAdjuntas();
+}
+
+async function agregarImagenesAdjuntas(inputFile) {
+    const archivos = Array.from(inputFile.files || []);
+    inputFile.value = ""; // permite volver a elegir el mismo archivo más adelante si hace falta
+
+    if (!archivos.length) return;
+
+    if (imagenesAdjuntasDatos.length + archivos.length > MAX_IMAGENES_ADJUNTAS) {
+        alert(`Como máximo se pueden adjuntar ${MAX_IMAGENES_ADJUNTAS} imágenes.`);
+        return;
+    }
+
+    for (const archivo of archivos) {
+        if (archivo.size > TAMANO_MAXIMO_IMAGEN) {
+            alert(`"${archivo.name}" supera los 4 MB y no se ha añadido. Elige una imagen más ligera.`);
+            continue;
+        }
+
+        try {
+            const dataUrl = await leerArchivoComoDataUrl(archivo);
+            imagenesAdjuntasDatos.push({ dataUrl });
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    renderizarImagenesAdjuntas();
+}
+
+async function construirDatosActa() {
     const datosConfig = window.__configuracionActual || {};
     const firmantePOConfig = datosConfig.firmantePOJefe || {};
     const tecnicoActual = tecnicoSeleccionado || {};
     const representanteActual = representanteSeleccionado || {};
 
-    let imagenAdjunta = "";
-    const archivoImagen = document.getElementById("imagenAdjunta")?.files[0] || null;
-
-    if (archivoImagen) {
-        const TAMANO_MAXIMO = 4 * 1024 * 1024; // 4 MB
-        if (archivoImagen.size > TAMANO_MAXIMO) {
-            alert("La imagen adjunta no puede superar los 4 MB. Elige una imagen más ligera.");
-            return;
-        }
-
-        try {
-            imagenAdjunta = await leerArchivoComoDataUrl(archivoImagen);
-        } catch (error) {
-            alert(error.message);
-            return;
-        }
-    }
-
-    const datos = {
+    return {
         fecha: document.getElementById("fecha")?.value || "",
         fechaInicio: document.getElementById("fechaInicio")?.value || "",
         fechaFin: document.getElementById("fechaFin")?.value || "",
@@ -281,9 +323,124 @@ async function generarActa() {
         firmantePOJefeNombre: firmantePOConfig.nombre || "",
         firmantePOJefeFirma: firmantePOConfig.firma || "",
         firmantePOJefeUsarFirma: !!firmantePOConfig.usarFirma,
-        imagenAdjunta
+        imagenesAdjuntas: imagenesAdjuntasDatos.map(item => item.dataUrl),
+        // Firmas ya realizadas (dibujadas o reutilizadas) en cualquier ordenador,
+        // cada una con su fecha y hora. Se conservan al volver a guardar/generar.
+        firmas: firmasAplicadasCargadas || {}
     };
+}
+
+async function generarActa() {
+    let datos;
+    try {
+        datos = await construirDatosActa();
+    } catch (error) {
+        alert(error.message);
+        return;
+    }
 
     localStorage.setItem("actaCero", JSON.stringify(datos));
     window.open("/acta.html", "_blank");
+}
+
+async function guardarActaArchivo() {
+    let datos;
+    try {
+        datos = await construirDatosActa();
+    } catch (error) {
+        alert(error.message);
+        return;
+    }
+
+    await descargarActaComoArchivo(datos, sugerirNombreArchivoActa(datos));
+}
+
+async function abrirActaArchivo(inputFile) {
+    const archivo = inputFile.files[0];
+    if (!archivo) return;
+
+    try {
+        const datos = await leerArchivoActaComoJSON(archivo);
+        rellenarFormularioConActa(datos);
+    } catch (error) {
+        alert(error.message);
+    } finally {
+        inputFile.value = "";
+    }
+}
+
+function marcarCasillasSegunTexto(contenedorId, textoGuardado) {
+    if (!textoGuardado) return;
+
+    const valores = textoGuardado.split(",").map(v => v.trim()).filter(Boolean);
+    const contenedor = document.getElementById(contenedorId);
+    if (!contenedor) return;
+
+    contenedor.querySelectorAll("input[type=checkbox]").forEach(casilla => {
+        casilla.checked = valores.includes(casilla.value);
+    });
+}
+
+function rellenarFormularioConActa(datos) {
+    const poner = (id, valor) => {
+        const el = document.getElementById(id);
+        if (el) el.value = valor || "";
+    };
+
+    poner("fecha", datos.fecha);
+    poner("fechaInicio", datos.fechaInicio);
+    poner("fechaFin", datos.fechaFin);
+    poner("lcl", datos.lcl);
+    poner("linea", datos.linea);
+    poner("soporte", datos.soporte);
+    poner("apertura", datos.apertura);
+    poner("trabajo", datos.trabajo);
+    poner("textoContratista", datos.textoContratista);
+    poner("descripcion", datos.descripcion);
+    poner("textoJI", datos.textoJI);
+
+    // Subestación -> dispara el pintado de las casillas de parque/posición,
+    // y luego marcamos las que estaban guardadas.
+    poner("subestacion", datos.subestacion);
+    cambiarSubestacion();
+    marcarCasillasSegunTexto("parque", datos.parque);
+    marcarCasillasSegunTexto("posicion", datos.posicion);
+
+    // Empresa -> dispara el listado de representantes, y luego seleccionamos el guardado.
+    poner("empresa", datos.empresa);
+    cambiarEmpresa();
+    poner("representante", datos.representante);
+    cambiarRepresentante();
+
+    // Técnico: se busca por nombre (el formulario lo selecciona por id interno).
+    const tecnicoEncontrado = tecnicos.find(t => t.nombre === datos.tecnico);
+    const cboTecnico = document.getElementById("tecnico");
+    if (cboTecnico) {
+        cboTecnico.value = tecnicoEncontrado ? tecnicoEncontrado.id : "";
+        cambiarTecnico();
+    }
+
+    // Imágenes adjuntas: se restauran todas las que traiga el acta guardada.
+    // Compatibilidad con archivos guardados antes de este cambio, que solo
+    // tenían una imagen bajo el nombre "imagenAdjunta".
+    const imagenesGuardadas = datos.imagenesAdjuntas && datos.imagenesAdjuntas.length
+        ? datos.imagenesAdjuntas
+        : (datos.imagenAdjunta ? [datos.imagenAdjunta] : []);
+
+    imagenesAdjuntasDatos = imagenesGuardadas.map(dataUrl => ({ dataUrl }));
+    renderizarImagenesAdjuntas();
+
+    // Firmas ya realizadas por quien haya rellenado el acta antes: se guardan
+    // para no perderlas, y se avisa de cuáles faltan.
+    firmasAplicadasCargadas = datos.firmas || {};
+
+    const yaFirmado = Object.keys(firmasAplicadasCargadas).filter(rol => firmasAplicadasCargadas[rol]);
+    const nombresRol = { tecnico: "Técnico Solicitante", representante: "Representante Contrata", firmantePO: "P.O. Jefe Instalación" };
+    const faltan = ["tecnico", "representante", "firmantePO"].filter(rol => !yaFirmado.includes(rol));
+
+    alert(
+        "Acta cargada correctamente." +
+        (yaFirmado.length ? `\n\nYa firmado: ${yaFirmado.map(r => nombresRol[r]).join(", ")}.` : "") +
+        (faltan.length ? `\nFalta por firmar: ${faltan.map(r => nombresRol[r]).join(", ")}.` : "")
+    );
 }

@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <title>Acta Cero</title>
     <link rel="stylesheet" href="css/acta.css">
+    <script src="js/acta-archivo.js"></script>
 </head>
 <body>
 
 <div class="no-print">
     <button type="button" onclick="window.print()">Generar PDF</button>
+    <button type="button" class="btn-secundario-pdf" onclick="guardarActaDesdeVista()">Guardar acta</button>
 </div>
 
 <section class="pagina">
@@ -172,7 +174,7 @@
                 <div class="rol-firma">El Técnico U. Solicitante</div>
                 <img id="firmaTecnicoImg" src="" alt="Firma técnico" class="firma-img">
                 <div class="firma-linea-manual" id="firmaTecnicoManual"></div>
-                <div class="firmado-texto">Firmado: <span id="firmaTecnicoNombre"></span></div>
+                <div class="firmado-texto">Firmado: <span id="firmaTecnicoNombre"></span><span id="firmaTecnicoFecha" class="firma-fecha"></span></div>
                 <button type="button" class="btn-firmar solo-pantalla" data-rol="tecnico" onclick="abrirFirmaActa('tecnico')">Firmar</button>
             </div>
         </div>
@@ -191,7 +193,7 @@
                 <div class="rol-firma">El Repr. Emp. Contratista</div>
                 <img id="firmaRepresentanteImg" src="" alt="Firma representante" class="firma-img">
                 <div class="firma-linea-manual" id="firmaRepresentanteManual"></div>
-                <div class="firmado-texto">Firmado: <span id="representanteFirma"></span></div>
+                <div class="firmado-texto">Firmado: <span id="representanteFirma"></span><span id="firmaRepresentanteFecha" class="firma-fecha"></span></div>
                 <button type="button" class="btn-firmar solo-pantalla" data-rol="representante" onclick="abrirFirmaActa('representante')">Firmar</button>
             </div>
         </div>
@@ -210,7 +212,7 @@
                 <div class="rol-firma">P.O. del Jefe de la Instalación</div>
                 <img id="firmaFirmantePOImg" src="" alt="Firma firmante P.O." class="firma-img">
                 <div class="firma-linea-manual" id="firmaFirmantePOManual"></div>
-                <div class="firmado-texto">Firmado: <span id="firmaFirmantePO"></span></div>
+                <div class="firmado-texto">Firmado: <span id="firmaFirmantePO"></span><span id="firmaFirmantePOFecha" class="firma-fecha"></span></div>
                 <button type="button" class="btn-firmar solo-pantalla" data-rol="firmantePO" onclick="abrirFirmaActa('firmantePO')">Firmar</button>
             </div>
         </div>
@@ -312,18 +314,33 @@ poner("firmaFirmantePO", datos.firmantePOJefeNombre);
 poner("fechaInicioTrabajo", formatearFechaVisual(datos.fechaInicio));
 poner("fechaFinTrabajo", formatearFechaVisual(datos.fechaFin));
 
-// Numeración de hojas: solo hay una tercera hoja si se adjuntó una imagen
-const totalPaginas = datos.imagenAdjunta ? 3 : 2;
+// Numeración de hojas: tantas hojas de imagen como imágenes se hayan adjuntado
+// (ninguna si no se adjuntó nada). Compatible con actas guardadas antes de
+// poder adjuntar varias, que traían una sola bajo "imagenAdjunta".
+const imagenesAdjuntas = (datos.imagenesAdjuntas && datos.imagenesAdjuntas.length)
+    ? datos.imagenesAdjuntas
+    : (datos.imagenAdjunta ? [datos.imagenAdjunta] : []);
+
+const totalPaginas = 2 + imagenesAdjuntas.length;
 poner("hojaContador1", `Hoja 1 de ${totalPaginas}`);
 poner("hojaContador2", `Hoja 2 de ${totalPaginas}`);
 
-if (datos.imagenAdjunta) {
-    crearHojaImagen(datos.imagenAdjunta, totalPaginas);
-}
+let ultimaHojaInsertada = document.querySelector(".pagina-cajas");
 
-function crearHojaImagen(dataUrl, total) {
+imagenesAdjuntas.forEach((dataUrl, indice) => {
+    const nuevaHoja = crearHojaImagen(dataUrl, 3 + indice, totalPaginas, indice + 1, imagenesAdjuntas.length);
+    ultimaHojaInsertada.insertAdjacentElement("afterend", nuevaHoja);
+    ultimaHojaInsertada = nuevaHoja;
+});
+
+function crearHojaImagen(dataUrl, numeroHoja, total, indiceImagen, totalImagenes) {
     const seccion = document.createElement("section");
     seccion.className = "pagina pagina-imagen";
+
+    const titulo = totalImagenes > 1
+        ? `IMAGEN ADJUNTA (${indiceImagen} de ${totalImagenes})`
+        : "IMAGEN ADJUNTA";
+
     seccion.innerHTML = `
         <div class="encabezado">
             <div class="logo">
@@ -335,16 +352,16 @@ function crearHojaImagen(dataUrl, total) {
                 EN SUBESTACIONES Y LAT
             </div>
             <div class="fecha-reunion solo-hoja">
-                <div class="hoja">Hoja ${total} de ${total}</div>
+                <div class="hoja">Hoja ${numeroHoja} de ${total}</div>
             </div>
         </div>
-        <div class="imagen-adjunta-titulo">IMAGEN ADJUNTA</div>
+        <div class="imagen-adjunta-titulo">${titulo}</div>
         <div class="imagen-adjunta-contenedor">
             <img src="${dataUrl}" alt="Imagen adjunta al acta">
         </div>
     `;
 
-    document.querySelector(".pagina-cajas").insertAdjacentElement("afterend", seccion);
+    return seccion;
 }
 
 const fecha = formatearFecha(datos.fecha);
@@ -356,8 +373,7 @@ actualizarLineasSegunContenido("descripcionTrabajo");
 actualizarLineasSegunContenido("textoContratista");
 actualizarLineasSegunContenido("textoJI");
 
-// El acta se genera SIN firmar. Las firmas se aplican después, a través del
-// proceso guiado que arranca el botón "Firmar" de cada bloque (ver más abajo).
+// El acta arranca sin firmar por defecto...
 configurarFirma("firmaTecnicoImg", "firmaTecnicoManual", false, "");
 configurarFirma("firmaRepresentanteImg", "firmaRepresentanteManual", false, "");
 configurarFirma("firmaFirmantePOImg", "firmaFirmantePOManual", false, "");
@@ -390,6 +406,17 @@ const ROLES_FIRMA = {
 let rolFirmaActual = null;
 let ctxFirmaActa = null;
 let dibujandoFirmaActa = false;
+
+// Si el acta ya trae firmas de una sesión anterior (se guardó, alguien la
+// firmó en su ordenador, y ahora se ha vuelto a abrir aquí), se restauran.
+if (datos.firmas) {
+    Object.keys(datos.firmas).forEach(rol => {
+        const firma = datos.firmas[rol];
+        if (firma && firma.dataUrl) {
+            aplicarFirmaActa(rol, firma.dataUrl, firma.fecha, false);
+        }
+    });
+}
 
 function abrirFirmaActa(rol) {
     const config = ROLES_FIRMA[rol];
@@ -479,26 +506,52 @@ function guardarFirmaActaDibujada() {
         return;
     }
 
-    aplicarFirmaActa(rolFirmaActual, canvas.toDataURL("image/png"));
+    aplicarFirmaActa(rolFirmaActual, canvas.toDataURL("image/png"), new Date().toISOString(), true);
     cerrarFirmaActa();
 }
 
-function usarFirmaGuardadaActa() {
+async function usarFirmaGuardadaActa() {
     const config = ROLES_FIRMA[rolFirmaActual];
     if (!config || !config.firmaGuardada) return;
 
-    aplicarFirmaActa(rolFirmaActual, `/${config.firmaGuardada}`);
+    let dataUrl;
+    try {
+        // Se convierte a base64 para que la firma quede autocontenida dentro
+        // del propio acta: así funciona igual si se abre en otro ordenador,
+        // donde esa ruta del servidor no existiría.
+        dataUrl = await convertirRutaEnDataUrl(`/${config.firmaGuardada}`);
+    } catch (error) {
+        alert(error.message);
+        return;
+    }
+
+    aplicarFirmaActa(rolFirmaActual, dataUrl, new Date().toISOString(), true);
     cerrarFirmaActa();
 }
 
-function aplicarFirmaActa(rol, src) {
+function aplicarFirmaActa(rol, dataUrl, fechaIso, persistir) {
     const config = ROLES_FIRMA[rol];
     if (!config) return;
 
-    configurarFirma(config.imgId, config.lineaId, true, src);
+    configurarFirma(config.imgId, config.lineaId, true, dataUrl);
 
     const boton = document.querySelector(`.btn-firmar[data-rol="${rol}"]`);
     if (boton) boton.textContent = "Volver a firmar";
+
+    const elementoFecha = document.getElementById(`firma${rol.charAt(0).toUpperCase()}${rol.slice(1)}Fecha`);
+    if (elementoFecha) {
+        elementoFecha.textContent = fechaIso ? ` (${formatearFechaHoraFirma(fechaIso)})` : "";
+    }
+
+    if (persistir) {
+        datos.firmas = datos.firmas || {};
+        datos.firmas[rol] = { dataUrl, fecha: fechaIso };
+        localStorage.setItem("actaCero", JSON.stringify(datos));
+    }
+}
+
+async function guardarActaDesdeVista() {
+    await descargarActaComoArchivo(datos, sugerirNombreArchivoActa(datos));
 }
 
 window.addEventListener("load", inicializarCanvasFirmaActa);
