@@ -43,12 +43,18 @@ if errorlevel 1 (
     exit /b 1
 )
 
-REM Si quedaba un servidor de una ejecucion anterior, lo paramos primero
+REM Antes de arrancar, nos aseguramos de que no quede ningun servidor previo
+REM ocupando el puerto 8000 -- ni el de la ultima vez (por su PID guardado)
+REM ni ningun otro que se hubiera quedado huerfano sin dejar ese fichero.
 if exist acta_cero.pid (
     for /f "usebackq delims=" %%p in ("acta_cero.pid") do (
         taskkill /PID %%p /F >nul 2>nul
     )
     del acta_cero.pid >nul 2>nul
+)
+
+for /f "tokens=5" %%p in ('netstat -ano ^| findstr ":8000" ^| findstr "LISTENING"') do (
+    taskkill /PID %%p /F >nul 2>nul
 )
 
 echo.
