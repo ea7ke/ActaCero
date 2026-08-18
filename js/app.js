@@ -242,6 +242,68 @@ function leerArchivoComoDataUrl(archivo) {
     });
 }
 
+function blobComoDataUrl(blob) {
+    return new Promise((resolve, reject) => {
+        const lector = new FileReader();
+        lector.onload = () => resolve(lector.result);
+        lector.onerror = () => reject(new Error("No se pudo procesar la imagen comprimida"));
+        lector.readAsDataURL(blob);
+    });
+}
+
+function dibujarComoJpeg(bitmap, ancho, alto, calidad) {
+    const canvas = document.createElement("canvas");
+    canvas.width = ancho;
+    canvas.height = alto;
+
+    const ctx = canvas.getContext("2d");
+    // Fondo blanco: si la imagen original tenía transparencia (ej. un PNG),
+    // al pasar a JPEG (que no admite transparencia) se rellena en blanco en
+    // vez de quedar en negro.
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, ancho, alto);
+    ctx.drawImage(bitmap, 0, 0, ancho, alto);
+
+    return new Promise(resolve => canvas.toBlob(resolve, "image/jpeg", calidad));
+}
+
+async function comprimirImagenSiHaceFalta(archivo) {
+    if (archivo.size <= TAMANO_MAXIMO_IMAGEN) {
+        return leerArchivoComoDataUrl(archivo);
+    }
+
+    let bitmap;
+    try {
+        bitmap = await createImageBitmap(archivo);
+    } catch (error) {
+        // Si el navegador no puede procesarla (formato raro, etc.), se deja
+        // tal cual y que decida el aviso de tamaño de más abajo.
+        return leerArchivoComoDataUrl(archivo);
+    }
+
+    let ancho = bitmap.width;
+    let alto = bitmap.height;
+    let calidad = 0.85;
+    let blob = null;
+
+    // Baja primero la calidad JPEG; si con la mínima calidad razonable sigue
+    // pesando de más, también reduce la resolución, hasta 10 intentos.
+    for (let intento = 0; intento < 10; intento++) {
+        blob = await dibujarComoJpeg(bitmap, ancho, alto, calidad);
+
+        if (blob.size <= TAMANO_MAXIMO_IMAGEN) break;
+
+        if (calidad > 0.4) {
+            calidad -= 0.1;
+        } else {
+            ancho = Math.round(ancho * 0.8);
+            alto = Math.round(alto * 0.8);
+        }
+    }
+
+    return blobComoDataUrl(blob);
+}
+
 function renderizarImagenesAdjuntas() {
     const contenedor = document.getElementById("imagenesAdjuntasLista");
     if (!contenedor) return;
@@ -272,18 +334,27 @@ async function agregarImagenesAdjuntas(inputFile) {
         return;
     }
 
-    for (const archivo of archivos) {
-        if (archivo.size > TAMANO_MAXIMO_IMAGEN) {
-            alert(`"${archivo.name}" supera los 4 MB y no se ha añadido. Elige una imagen más ligera.`);
-            continue;
-        }
+    const comprimidas = [];
 
+    for (const archivo of archivos) {
         try {
-            const dataUrl = await leerArchivoComoDataUrl(archivo);
+            const pesabaDeMas = archivo.size > TAMANO_MAXIMO_IMAGEN;
+            const dataUrl = await comprimirImagenSiHaceFalta(archivo);
             imagenesAdjuntasDatos.push({ dataUrl });
+
+            if (pesabaDeMas) {
+                comprimidas.push(archivo.name);
+            }
         } catch (error) {
-            alert(error.message);
+            alert(`No se pudo procesar "${archivo.name}": ${error.message}`);
         }
+    }
+
+    if (comprimidas.length) {
+        alert(
+            `Se ha reducido automáticamente el tamaño de: ${comprimidas.join(", ")} ` +
+            `(pesaban más de 4 MB). El resto de imágenes se han añadido tal cual.`
+        );
     }
 
     renderizarImagenesAdjuntas();
