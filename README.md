@@ -29,17 +29,19 @@ pip install -r requirements.txt
 
 Si no eres la persona que va a tocar el código, esta es la forma más sencilla de tener Acta Cero funcionando:
 
-1. Descarga o copia la carpeta completa del proyecto a tu equipo (por ejemplo, en el Escritorio o en `Documentos`).
+1. Descarga y descomprime el `.zip` del proyecto en cualquier sitio (Descargas, Escritorio... da igual, es un paso intermedio).
 2. Asegúrate de tener **Python** instalado. Si no lo tienes, descárgalo de [python.org/downloads](https://www.python.org/downloads/) e instálalo marcando la casilla **"Add python.exe to PATH"** durante la instalación.
-3. Haz doble clic en **`crear_acceso_directo.bat`**. Esto crea un icono llamado **"Acta Cero"** en tu Escritorio.
-4. A partir de ahora, para usar la aplicación, haz doble clic en ese icono del Escritorio. El servidor arranca en segundo plano (sin mostrar ninguna ventana) y el navegador se abre solo con el formulario.
-5. Para detener el servidor, ejecuta **`detener_acta.bat`**.
+3. Haz doble clic en **`ejecutar_acta.bat`**. La primera vez, esto instala la aplicación de verdad en tu carpeta de usuario (`C:\Users\<tu_usuario>\.ACERO`), crea el icono **"Acta Cero"** en tu Escritorio, y arranca el programa automáticamente. Ya puedes borrar la carpeta descomprimida del paso 1 si quieres — la copia que cuenta a partir de ahora es la de `.ACERO`.
+4. A partir de ahora, usa siempre el icono **"Acta Cero"** del Escritorio para abrir la aplicación. El servidor arranca en segundo plano (sin mostrar ninguna ventana) y el navegador se abre solo con el formulario.
+5. Para detener el servidor, ejecuta **`detener_acta.bat`** (dentro de `.ACERO`) — no es obligatorio, ver más abajo.
+
+> Si más adelante recibes una versión más nueva del programa, repite el paso 3 con el `.zip` nuevo: `ejecutar_acta.bat` se dará cuenta de que ya estabas instalado, actualizará los archivos del programa en `.ACERO` y **no tocará** tu configuración (técnicos, subestaciones, contratistas, firmas guardadas...), que vive aparte.
 
 | Archivo | Para qué sirve |
 |---|---|
-| `crear_acceso_directo.bat` | Se ejecuta **una sola vez**. Crea el icono de acceso directo en el Escritorio. |
-| `ejecutar_acta.bat` | Arranca el servidor (oculto, sin ventana) y abre el navegador. Es lo que hace el acceso directo del Escritorio. |
+| `ejecutar_acta.bat` | Punto de entrada único. La primera vez instala la app en `.ACERO` y crea el acceso directo; el resto de veces, simplemente la arranca. |
 | `detener_acta.bat` | Detiene el servidor cuando se termina de usar. |
+| `crear_acceso_directo.bat` | Ya no hace falta usarlo a mano — `ejecutar_acta.bat` crea el acceso directo solo. Se deja por si algún día hay que recrearlo manualmente (por ejemplo, si alguien borra el icono del Escritorio sin querer). |
 
 > El servidor arranca con `pythonw`/`pyw` (las versiones de Python "sin consola"), así que no aparece ninguna ventana mientras funciona. `detener_acta.bat` sabe qué proceso parar porque `server.py` guarda su identificador de proceso en `acta_cero.pid` al arrancar.
 
