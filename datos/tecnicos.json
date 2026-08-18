@@ -2,8 +2,8 @@
   {
     "id": "arturo-rivera-gallardo",
     "nombre": "Arturo Rivera Gallardo",
-    "firma": "img/firmas/e4f68497d9e646929c23e283400f6e6e.png",
-    "usarFirma": true,
+    "firma": "",
+    "usarFirma": false,
     "area": "Subestaciones Sevilla"
   },
   {
@@ -52,7 +52,7 @@
     "id": "julian-lucas-martinez",
     "nombre": "Julián Lucas Martínez",
     "firma": "",
-    "usarFirma": true,
+    "usarFirma": false,
     "area": "PM&C"
   }
 ]

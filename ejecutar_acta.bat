@@ -57,6 +57,7 @@ set "VBS=%TEMP%\crear_acceso_directo_actacero.vbs"
 >> "%VBS%" echo oLink.TargetPath = "%CARPETA_INSTALACION%ejecutar_acta.bat"
 >> "%VBS%" echo oLink.WorkingDirectory = "%CARPETA_INSTALACION%"
 >> "%VBS%" echo oLink.Description = "Arrancar Acta Cero"
+>> "%VBS%" echo oLink.IconLocation = "%CARPETA_INSTALACION%img\acta-cero.ico"
 >> "%VBS%" echo oLink.WindowStyle = 1
 >> "%VBS%" echo oLink.Save
 
