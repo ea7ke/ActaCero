@@ -1,1 +1,58 @@
-[]
+[
+  {
+    "id": "arturo-rivera-gallardo",
+    "nombre": "Arturo Rivera Gallardo",
+    "firma": "img/firmas/e4f68497d9e646929c23e283400f6e6e.png",
+    "usarFirma": true,
+    "area": "Subestaciones Sevilla"
+  },
+  {
+    "id": "sonia-lopez-gonzalez",
+    "nombre": "Sonia López González",
+    "firma": "",
+    "usarFirma": false,
+    "area": "PM&C"
+  },
+  {
+    "id": "miguel-sanchez-fuentes",
+    "nombre": "Miguel Sánchez Fuentes",
+    "firma": "",
+    "usarFirma": false,
+    "area": "PM&C"
+  },
+  {
+    "id": "david-martin-gil",
+    "nombre": "David Martín Gil",
+    "firma": "",
+    "usarFirma": false,
+    "area": "PM&C"
+  },
+  {
+    "id": "mariola-ponce-rodriguez",
+    "nombre": "Mariola Ponce Rodriguez",
+    "firma": "",
+    "usarFirma": false,
+    "area": "PM&C"
+  },
+  {
+    "id": "nacho-aleman-anton",
+    "nombre": "Nacho Alemán Antón",
+    "firma": "",
+    "usarFirma": false,
+    "area": "PM&C"
+  },
+  {
+    "id": "francisco-javier-cebolla",
+    "nombre": "Francisco Javier Cebolla",
+    "firma": "",
+    "usarFirma": false,
+    "area": "PM&C"
+  },
+  {
+    "id": "julian-lucas-martinez",
+    "nombre": "Julián Lucas Martínez",
+    "firma": "",
+    "usarFirma": true,
+    "area": "PM&C"
+  }
+]
