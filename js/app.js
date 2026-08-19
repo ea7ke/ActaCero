@@ -37,11 +37,9 @@ window.addEventListener("load", async () => {
         const config = await configRes.json();
         window.__configuracionActual = config;
 
-        const unidad = document.getElementById("unidad");
         const jefeInstalacion = document.getElementById("jefeInstalacion");
         const jefeConfig = config.jefeInstalacion || {};
 
-        if (unidad) unidad.value = config.unidadSolicitante || "";
         if (jefeInstalacion) jefeInstalacion.value = jefeConfig.nombre || "";
 
         const subRes = await fetch("/api/subestaciones");
@@ -116,15 +114,21 @@ function cargarTecnicos() {
 
     cboTecnico.innerHTML = '<option value="">Seleccione...</option>';
 
-    tecnicos
-        .slice()
-        .sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""))
-        .forEach(t => {
-            const option = document.createElement("option");
-            option.value = t.id;
-            option.textContent = t.nombre;
-            cboTecnico.appendChild(option);
-        });
+    // Un firmante P.O. también puede ser el solicitante de un trabajo, así que
+    // aparece igualmente en este desplegable, sin necesidad de duplicarlo
+    // como técnico. El prefijo del value ("t:"/"f:") indica de qué lista viene,
+    // para poder localizarlo correctamente al seleccionarlo.
+    const opciones = [
+        ...tecnicos.map(t => ({ valor: `t:${t.id}`, nombre: t.nombre || "" })),
+        ...firmantesPO.map(f => ({ valor: `f:${f.id}`, nombre: f.nombre || "" }))
+    ].sort((a, b) => a.nombre.localeCompare(b.nombre));
+
+    opciones.forEach(op => {
+        const option = document.createElement("option");
+        option.value = op.valor;
+        option.textContent = op.nombre;
+        cboTecnico.appendChild(option);
+    });
 }
 
 function cargarFirmantesPO() {
@@ -236,8 +240,19 @@ function cambiarRepresentante() {
 }
 
 function cambiarTecnico() {
-    const id = document.getElementById("tecnico")?.value || "";
-    tecnicoSeleccionado = tecnicos.find(t => t.id === id) || null;
+    const valor = document.getElementById("tecnico")?.value || "";
+    const [origen, id] = valor.includes(":") ? valor.split(":") : ["", valor];
+
+    if (origen === "f") {
+        // Es un firmante P.O. actuando como solicitante: sí tiene área y
+        // correo propios en su ficha (a diferencia de antes), así que viajan.
+        const firmante = firmantesPO.find(f => f.id === id) || null;
+        tecnicoSeleccionado = firmante
+            ? { id: firmante.id, nombre: firmante.nombre, firma: firmante.firma, usarFirma: firmante.usarFirma, area: firmante.area || "", correo: firmante.correo || "" }
+            : null;
+    } else {
+        tecnicoSeleccionado = tecnicos.find(t => t.id === id) || null;
+    }
 
     const areaTecnico = document.getElementById("areaTecnico");
     if (areaTecnico) {
@@ -245,11 +260,9 @@ function cambiarTecnico() {
     }
 
     // La Unidad Solicitante es el área a la que pertenece el técnico elegido.
-    // Si no hay técnico seleccionado, se usa la unidad solicitante global de Administración.
     const unidad = document.getElementById("unidad");
     if (unidad) {
-        const config = window.__configuracionActual || {};
-        unidad.value = tecnicoSeleccionado?.area || config.unidadSolicitante || "";
+        unidad.value = tecnicoSeleccionado?.area || "";
     }
 }
 
@@ -412,6 +425,7 @@ async function construirDatosActa() {
         tecnicoFirma: tecnicoActual.firma || "",
         tecnicoUsarFirma: !!tecnicoActual.usarFirma,
         tecnicoArea: tecnicoActual.area || "",
+        tecnicoCorreo: tecnicoActual.correo || "",
         jefeInstalacion: document.getElementById("jefeInstalacion")?.value || "",
         unidad: document.getElementById("unidad")?.value || "",
         trabajo: document.getElementById("trabajo")?.value || "",
@@ -510,11 +524,23 @@ function rellenarFormularioConActa(datos) {
     poner("representante", datos.representante);
     cambiarRepresentante();
 
-    // Técnico: se busca por nombre (el formulario lo selecciona por id interno).
+    // Técnico: se busca por nombre, primero entre los técnicos y si no entre
+    // los firmantes P.O. (que también pueden ser solicitantes). El formulario
+    // lo selecciona por el value con prefijo "t:"/"f:".
     const tecnicoEncontrado = tecnicos.find(t => t.nombre === datos.tecnico);
+    const firmanteComoSolicitante = !tecnicoEncontrado
+        ? firmantesPO.find(f => f.nombre === datos.tecnico)
+        : null;
+
     const cboTecnico = document.getElementById("tecnico");
     if (cboTecnico) {
-        cboTecnico.value = tecnicoEncontrado ? tecnicoEncontrado.id : "";
+        if (tecnicoEncontrado) {
+            cboTecnico.value = `t:${tecnicoEncontrado.id}`;
+        } else if (firmanteComoSolicitante) {
+            cboTecnico.value = `f:${firmanteComoSolicitante.id}`;
+        } else {
+            cboTecnico.value = "";
+        }
         cambiarTecnico();
     }
 

@@ -9,6 +9,16 @@ let contratistaSeleccionado = null;
 let representanteEditando = null;
 let firmantePOEditando = null;
 
+function cambiarPestana(nombrePestana) {
+    document.querySelectorAll(".tab-boton").forEach(boton => {
+        boton.classList.toggle("activo", boton.dataset.tab === nombrePestana);
+    });
+
+    document.querySelectorAll(".tab-panel").forEach(panel => {
+        panel.classList.toggle("activo", panel.dataset.tab === nombrePestana);
+    });
+}
+
 window.addEventListener("load", async () => {
     await cargarTodo();
 });
@@ -36,13 +46,7 @@ async function cargarConfiguracion() {
         configuracion = await res.json();
 
         const jefe = configuracion.jefeInstalacion || {};
-
-        document.getElementById("cfgUnidad").value = configuracion.unidadSolicitante || "";
-
         document.getElementById("cfgJefeNombre").value = jefe.nombre || "";
-        document.getElementById("cfgJefeFirma").value = jefe.firma || "";
-        document.getElementById("cfgJefeUsarFirma").checked = !!jefe.usarFirma;
-        mostrarPreviewExistente("cfgJefeFirma", jefe.firma);
     } catch (error) {
         console.error(error);
         alert(`No se pudo cargar la configuración: ${error.message}`);
@@ -51,11 +55,8 @@ async function cargarConfiguracion() {
 
 async function guardarConfiguracion() {
     const data = {
-        unidadSolicitante: document.getElementById("cfgUnidad").value.trim(),
         jefeInstalacion: {
-            nombre: document.getElementById("cfgJefeNombre").value.trim(),
-            firma: document.getElementById("cfgJefeFirma").value.trim(),
-            usarFirma: document.getElementById("cfgJefeUsarFirma").checked
+            nombre: document.getElementById("cfgJefeNombre").value.trim()
         }
     };
 
@@ -124,6 +125,8 @@ function renderFirmantesPO() {
                         <button class="btn-peligro" type="button" onclick="eliminarFirmantePO('${escapeJs(f.id)}')">Eliminar</button>
                     </div>
                 </div>
+                <div class="card-linea"><strong>Área:</strong> ${escapeHtml(f.area || "") || "—"}</div>
+                <div class="card-linea"><strong>Correo:</strong> ${escapeHtml(f.correo || "") || "—"}</div>
                 <div class="card-firma-thumb">
                     <img src="${f.firma ? `/${escapeHtml(f.firma)}` : FIRMA_PLACEHOLDER}" alt="Firma de ${escapeHtml(f.nombre || "")}">
                     <span class="estado-firma">${f.usarFirma ? '<span class="badge-si">Firma activa</span>' : '<span class="badge-no">Sin usar</span>'}</span>
@@ -137,6 +140,8 @@ async function guardarFirmantePO() {
     const nombre = document.getElementById("nuevoFirmantePONombre").value.trim();
     if (!nombre) return alert("Introduce un nombre.");
 
+    const correo = document.getElementById("nuevoFirmantePOCorreo").value.trim();
+    const area = document.getElementById("nuevoFirmantePOArea").value.trim();
     const firma = document.getElementById("nuevoFirmantePOFirma").value.trim();
     const usarFirma = document.getElementById("nuevoFirmantePOUsarFirma").checked;
 
@@ -148,7 +153,7 @@ async function guardarFirmantePO() {
         const res = await fetch(url, {
             method: firmantePOEditando ? "PUT" : "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ nombre, firma, usarFirma })
+            body: JSON.stringify({ nombre, correo, area, firma, usarFirma })
         });
 
         const json = await res.json();
@@ -168,6 +173,8 @@ function editarFirmantePO(id) {
     firmantePOEditando = id;
 
     document.getElementById("nuevoFirmantePONombre").value = firmante.nombre || "";
+    document.getElementById("nuevoFirmantePOArea").value = firmante.area || "";
+    document.getElementById("nuevoFirmantePOCorreo").value = firmante.correo || "";
     document.getElementById("nuevoFirmantePOFirma").value = firmante.firma || "";
     document.getElementById("nuevoFirmantePOUsarFirma").checked = !!firmante.usarFirma;
     actualizarPreviewFirma("nuevoFirmantePOFirma", firmante.firma || "");
@@ -185,6 +192,8 @@ function cancelarEdicionFirmantePO() {
     firmantePOEditando = null;
 
     document.getElementById("nuevoFirmantePONombre").value = "";
+    document.getElementById("nuevoFirmantePOArea").value = "Subestaciones Sevilla";
+    document.getElementById("nuevoFirmantePOCorreo").value = "";
     document.getElementById("nuevoFirmantePOFirma").value = "";
     document.getElementById("nuevoFirmantePOUsarFirma").checked = false;
     actualizarPreviewFirma("nuevoFirmantePOFirma", "");
@@ -226,9 +235,13 @@ function renderTecnicos() {
             <div class="card-admin">
                 <div class="card-header">
                     <h3>${escapeHtml(t.nombre || "")}</h3>
-                    <button class="btn-peligro" type="button" onclick="eliminarTecnico('${escapeJs(t.id)}')">Eliminar</button>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn-secundario" type="button" onclick="editarTecnico('${escapeJs(t.id)}')">Editar</button>
+                        <button class="btn-peligro" type="button" onclick="eliminarTecnico('${escapeJs(t.id)}')">Eliminar</button>
+                    </div>
                 </div>
                 <div class="card-linea"><strong>Área:</strong> ${escapeHtml(t.area || "") || "—"}</div>
+                <div class="card-linea"><strong>Correo:</strong> ${escapeHtml(t.correo || "") || "—"}</div>
                 <div class="card-firma-thumb">
                     <img src="${t.firma ? `/${escapeHtml(t.firma)}` : FIRMA_PLACEHOLDER}" alt="Firma de ${escapeHtml(t.nombre || "")}">
                     <span class="estado-firma">${t.usarFirma ? '<span class="badge-si">Firma activa</span>' : '<span class="badge-no">Sin usar</span>'}</span>
@@ -247,9 +260,12 @@ function slugifyId(texto) {
         .replace(/(^-|-$)/g, "");
 }
 
-async function crearTecnico() {
+let tecnicoEditando = null;
+
+async function guardarTecnico() {
     const nombre = document.getElementById("nuevoTecnicoNombre").value.trim();
     const area = document.getElementById("nuevoTecnicoArea").value.trim();
+    const correo = document.getElementById("nuevoTecnicoCorreo").value.trim();
     const firma = document.getElementById("nuevoTecnicoFirma").value.trim();
     const usarFirma = document.getElementById("nuevoTecnicoUsarFirma").checked;
 
@@ -258,34 +274,68 @@ async function crearTecnico() {
         return;
     }
 
-    const data = {
-        id: slugifyId(nombre),
-        nombre,
-        area,
-        firma,
-        usarFirma
-    };
+    const data = { nombre, area, correo, firma, usarFirma };
 
     try {
-        const res = await fetch("/api/tecnicos", {
-            method: "POST",
+        const url = tecnicoEditando ? `/api/tecnicos/${encodeURIComponent(tecnicoEditando)}` : "/api/tecnicos";
+
+        if (!tecnicoEditando) {
+            data.id = slugifyId(nombre);
+        }
+
+        const res = await fetch(url, {
+            method: tecnicoEditando ? "PUT" : "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(data)
         });
 
         const json = await res.json();
-        if (!res.ok || !json.ok) throw new Error(json.error || "No se pudo crear el técnico");
+        if (!res.ok || !json.ok) throw new Error(json.error || "No se pudo guardar el técnico");
 
-        document.getElementById("nuevoTecnicoNombre").value = "";
-        document.getElementById("nuevoTecnicoArea").value = "";
-        document.getElementById("nuevoTecnicoFirma").value = "";
-        document.getElementById("nuevoTecnicoUsarFirma").checked = false;
-        ocultarPreview("nuevoTecnicoFirma");
-
+        cancelarEdicionTecnico();
         await cargarTecnicos();
     } catch (error) {
         alert(error.message);
     }
+}
+
+function editarTecnico(id) {
+    const tecnico = tecnicos.find(t => t.id === id);
+    if (!tecnico) return;
+
+    tecnicoEditando = id;
+
+    document.getElementById("nuevoTecnicoNombre").value = tecnico.nombre || "";
+    document.getElementById("nuevoTecnicoArea").value = tecnico.area || "";
+    document.getElementById("nuevoTecnicoCorreo").value = tecnico.correo || "";
+    document.getElementById("nuevoTecnicoFirma").value = tecnico.firma || "";
+    document.getElementById("nuevoTecnicoUsarFirma").checked = !!tecnico.usarFirma;
+    actualizarPreviewFirma("nuevoTecnicoFirma", tecnico.firma || "");
+
+    const boton = document.getElementById("btnGuardarTecnico");
+    if (boton) boton.textContent = "Guardar cambios";
+
+    const cancelar = document.getElementById("btnCancelarEdicionTecnico");
+    if (cancelar) cancelar.classList.remove("oculto");
+
+    document.getElementById("nuevoTecnicoNombre").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function cancelarEdicionTecnico() {
+    tecnicoEditando = null;
+
+    document.getElementById("nuevoTecnicoNombre").value = "";
+    document.getElementById("nuevoTecnicoArea").value = "";
+    document.getElementById("nuevoTecnicoCorreo").value = "";
+    document.getElementById("nuevoTecnicoFirma").value = "";
+    document.getElementById("nuevoTecnicoUsarFirma").checked = false;
+    actualizarPreviewFirma("nuevoTecnicoFirma", "");
+
+    const boton = document.getElementById("btnGuardarTecnico");
+    if (boton) boton.textContent = "Añadir técnico";
+
+    const cancelar = document.getElementById("btnCancelarEdicionTecnico");
+    if (cancelar) cancelar.classList.add("oculto");
 }
 
 async function eliminarTecnico(id) {
@@ -383,6 +433,7 @@ function renderDetalleSubestacion() {
                         ? parques.map(parque => `
                             <li class="chip-item">
                                 <span>${escapeHtml(parque)}</span>
+                                <button class="btn-secundario btn-mini" type="button" onclick="editarParque('${escapeJs(subestacionSeleccionada)}', '${escapeJs(parque)}')" title="Editar">✎</button>
                                 <button class="btn-peligro btn-mini" type="button" onclick="eliminarParque('${escapeJs(subestacionSeleccionada)}', '${escapeJs(parque)}')">x</button>
                             </li>
                         `).join("")
@@ -403,6 +454,7 @@ function renderDetalleSubestacion() {
                         ? posiciones.map(posicion => `
                             <li class="chip-item">
                                 <span>${escapeHtml(posicion)}</span>
+                                <button class="btn-secundario btn-mini" type="button" onclick="editarPosicion('${escapeJs(subestacionSeleccionada)}', '${escapeJs(posicion)}')" title="Editar">✎</button>
                                 <button class="btn-peligro btn-mini" type="button" onclick="eliminarPosicion('${escapeJs(subestacionSeleccionada)}', '${escapeJs(posicion)}')">x</button>
                             </li>
                         `).join("")
@@ -479,6 +531,27 @@ async function agregarParque(nombre) {
     }
 }
 
+async function editarParque(nombre, parqueActual) {
+    const nuevoValor = prompt("Nuevo nombre del parque:", parqueActual);
+    if (nuevoValor === null) return; // cancelado
+    if (!nuevoValor.trim() || nuevoValor.trim() === parqueActual) return;
+
+    try {
+        const res = await fetch(`/api/subestaciones/${encodeURIComponent(nombre)}/parques/${encodeURIComponent(parqueActual)}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nuevoValor: nuevoValor.trim() })
+        });
+
+        const json = await res.json();
+        if (!res.ok || !json.ok) throw new Error(json.error || "No se pudo editar el parque");
+
+        await cargarSubestaciones();
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
 async function eliminarParque(nombre, parque) {
     try {
         const res = await fetch(`/api/subestaciones/${encodeURIComponent(nombre)}/parques/${encodeURIComponent(parque)}`, {
@@ -510,6 +583,27 @@ async function agregarPosicion(nombre) {
         if (!res.ok || !json.ok) throw new Error(json.error || "No se pudo añadir la posición");
 
         input.value = "";
+        await cargarSubestaciones();
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+async function editarPosicion(nombre, posicionActual) {
+    const nuevoValor = prompt("Nuevo nombre de la posición:", posicionActual);
+    if (nuevoValor === null) return; // cancelado
+    if (!nuevoValor.trim() || nuevoValor.trim() === posicionActual) return;
+
+    try {
+        const res = await fetch(`/api/subestaciones/${encodeURIComponent(nombre)}/posiciones/${encodeURIComponent(posicionActual)}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nuevoValor: nuevoValor.trim() })
+        });
+
+        const json = await res.json();
+        if (!res.ok || !json.ok) throw new Error(json.error || "No se pudo editar la posición");
+
         await cargarSubestaciones();
     } catch (error) {
         alert(error.message);
@@ -809,7 +903,6 @@ const FIRMA_PLACEHOLDER = "data:image/svg+xml;utf8," + encodeURIComponent(`
 // Relaciona cada campo de firma con su checkbox "usar firma automática",
 // para marcarlo solo cuando corresponde al subir/dibujar una firma nueva.
 const CHECKBOX_USAR_FIRMA = {
-    cfgJefeFirma: "cfgJefeUsarFirma",
     nuevoTecnicoFirma: "nuevoTecnicoUsarFirma",
     nuevoRepresentanteFirma: "nuevoRepresentanteUsarFirma",
     nuevoFirmantePOFirma: "nuevoFirmantePOUsarFirma"

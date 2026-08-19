@@ -1,7 +1,8 @@
 // Utilidades compartidas entre index.html y acta.html para:
-//  - Guardar el acta actual como archivo .json en el ordenador (con selector
+//  - Guardar el acta actual como archivo .ac0 en el ordenador (con selector
 //    de carpeta nativo cuando el navegador lo soporta).
-//  - Abrir un archivo .json de una acta guardada previamente.
+//  - Abrir un archivo .ac0 (o .json/.acta, de actas guardadas antes de este
+//    cambio) de una acta guardada previamente.
 //  - Convertir una imagen de firma guardada en el servidor (ruta relativa,
 //    solo válida en ESTE ordenador) a una imagen autocontenida en base64,
 //    para que el archivo funcione igual en el ordenador de otra persona.
@@ -24,7 +25,7 @@ function sugerirNombreArchivoActa(datos) {
     }
 
     const nombre = partes.filter(Boolean).join("_") || "Acta";
-    return `${nombre}.json`;
+    return `${nombre}.ac0`;
 }
 
 async function descargarActaComoArchivo(datos, nombreSugerido) {
@@ -36,7 +37,7 @@ async function descargarActaComoArchivo(datos, nombreSugerido) {
                 suggestedName: nombreSugerido,
                 types: [{
                     description: "Archivo de Acta Cero",
-                    accept: { "application/json": [".json"] }
+                    accept: { "application/json": [".ac0", ".json"] }
                 }]
             });
             const flujo = await manejador.createWritable();

@@ -135,16 +135,8 @@ def acta_page():
 @app.route("/api/configuracion", methods=["GET"])
 def get_configuracion():
     data = read_json(CONFIG_FILE, default={
-        "unidadSolicitante": "",
         "jefeInstalacion": {
-            "nombre": "",
-            "firma": "",
-            "usarFirma": False
-        },
-        "firmantePOJefe": {
-            "nombre": "",
-            "firma": "",
-            "usarFirma": False
+            "nombre": ""
         }
     })
     return jsonify(data)
@@ -155,19 +147,10 @@ def save_configuracion():
     data = request.get_json(silent=True) or {}
 
     jefe = data.get("jefeInstalacion", {}) or {}
-    firmante_po = data.get("firmantePOJefe", {}) or {}
 
     payload = {
-        "unidadSolicitante": str(data.get("unidadSolicitante", "")).strip(),
         "jefeInstalacion": {
-            "nombre": str(jefe.get("nombre", "")).strip(),
-            "firma": str(jefe.get("firma", "")).strip(),
-            "usarFirma": bool(jefe.get("usarFirma", False))
-        },
-        "firmantePOJefe": {
-            "nombre": str(firmante_po.get("nombre", "")).strip(),
-            "firma": str(firmante_po.get("firma", "")).strip(),
-            "usarFirma": bool(firmante_po.get("usarFirma", False))
+            "nombre": str(jefe.get("nombre", "")).strip()
         }
     }
 
@@ -283,6 +266,32 @@ def add_parque(nombre):
     return jsonify({"ok": True})
 
 
+@app.route("/api/subestaciones/<path:nombre>/parques/<path:parque>", methods=["PUT"])
+def update_parque(nombre, parque):
+    nombre = normalize_key(nombre)
+    parque = normalize_text(parque)
+    data = request.get_json(silent=True) or {}
+    nuevo_valor = normalize_text(data.get("nuevoValor", ""))
+
+    if not nuevo_valor:
+        return jsonify({"ok": False, "error": "El nuevo nombre no puede estar vacío"}), 400
+
+    subestaciones = read_json(SUBESTACIONES_FILE, default={})
+    if nombre not in subestaciones:
+        return jsonify({"ok": False, "error": "No existe la subestación"}), 404
+
+    lista = subestaciones[nombre].setdefault("parques", [])
+    if parque not in lista:
+        return jsonify({"ok": False, "error": "No existe ese parque"}), 404
+
+    if nuevo_valor != parque and nuevo_valor in lista:
+        return jsonify({"ok": False, "error": "Ya existe un parque con ese nombre"}), 400
+
+    lista[lista.index(parque)] = nuevo_valor
+    write_json(SUBESTACIONES_FILE, subestaciones)
+    return jsonify({"ok": True})
+
+
 @app.route("/api/subestaciones/<path:nombre>/parques/<path:parque>", methods=["DELETE"])
 def delete_parque(nombre, parque):
     nombre = normalize_key(nombre)
@@ -319,6 +328,32 @@ def add_posicion(nombre):
     if posicion not in subestaciones[nombre]["posiciones"]:
         subestaciones[nombre]["posiciones"].append(posicion)
 
+    write_json(SUBESTACIONES_FILE, subestaciones)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/subestaciones/<path:nombre>/posiciones/<path:posicion>", methods=["PUT"])
+def update_posicion(nombre, posicion):
+    nombre = normalize_key(nombre)
+    posicion = normalize_text(posicion)
+    data = request.get_json(silent=True) or {}
+    nuevo_valor = normalize_text(data.get("nuevoValor", ""))
+
+    if not nuevo_valor:
+        return jsonify({"ok": False, "error": "El nuevo nombre no puede estar vacío"}), 400
+
+    subestaciones = read_json(SUBESTACIONES_FILE, default={})
+    if nombre not in subestaciones:
+        return jsonify({"ok": False, "error": "No existe la subestación"}), 404
+
+    lista = subestaciones[nombre].setdefault("posiciones", [])
+    if posicion not in lista:
+        return jsonify({"ok": False, "error": "No existe esa posición"}), 404
+
+    if nuevo_valor != posicion and nuevo_valor in lista:
+        return jsonify({"ok": False, "error": "Ya existe una posición con ese nombre"}), 400
+
+    lista[lista.index(posicion)] = nuevo_valor
     write_json(SUBESTACIONES_FILE, subestaciones)
     return jsonify({"ok": True})
 
@@ -509,7 +544,8 @@ def add_tecnico():
         "nombre": str(data.get("nombre", "")).strip(),
         "firma": str(data.get("firma", "")).strip(),
         "usarFirma": bool(data.get("usarFirma", False)),
-        "area": str(data.get("area", "")).strip()
+        "area": str(data.get("area", "")).strip(),
+        "correo": str(data.get("correo", "")).strip()
     }
 
     if not nuevo["id"] or not nuevo["nombre"]:
@@ -538,7 +574,8 @@ def update_tecnico(tecnico_id):
         "nombre": str(data.get("nombre", "")).strip(),
         "firma": str(data.get("firma", "")).strip(),
         "usarFirma": bool(data.get("usarFirma", False)),
-        "area": str(data.get("area", "")).strip()
+        "area": str(data.get("area", "")).strip(),
+        "correo": str(data.get("correo", "")).strip()
     }
 
     write_json(TECNICOS_FILE, tecnicos)
@@ -587,6 +624,8 @@ def get_firmantespo():
             lista_inicial.append({
                 "id": slugificar(nombre_antiguo) or "firmante-po-1",
                 "nombre": nombre_antiguo,
+                "area": "",
+                "correo": "",
                 "firma": str(firmante_antiguo.get("firma", "")).strip(),
                 "usarFirma": bool(firmante_antiguo.get("usarFirma", False))
             })
@@ -613,6 +652,8 @@ def add_firmantepo():
     nuevo = {
         "id": nuevo_id,
         "nombre": nombre,
+        "area": str(data.get("area", "")).strip(),
+        "correo": str(data.get("correo", "")).strip(),
         "firma": str(data.get("firma", "")).strip(),
         "usarFirma": bool(data.get("usarFirma", False))
     }
@@ -639,6 +680,8 @@ def update_firmantepo(firmante_id):
     firmantes[index] = {
         "id": firmante_id,
         "nombre": nombre,
+        "area": str(data.get("area", "")).strip(),
+        "correo": str(data.get("correo", "")).strip(),
         "firma": str(data.get("firma", "")).strip(),
         "usarFirma": bool(data.get("usarFirma", False))
     }
@@ -704,16 +747,8 @@ if __name__ == "__main__":
     ensure_firmas_dir()
     escribir_pid()
     ensure_file(CONFIG_FILE, {
-        "unidadSolicitante": "",
         "jefeInstalacion": {
-            "nombre": "",
-            "firma": "",
-            "usarFirma": False
-        },
-        "firmantePOJefe": {
-            "nombre": "",
-            "firma": "",
-            "usarFirma": False
+            "nombre": ""
         }
     })
     ensure_file(SUBESTACIONES_FILE, {})

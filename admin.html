@@ -301,43 +301,132 @@
             gap: 6px;
             flex: 0 0 auto;
         }
+
+        /* ---------- Cabecera con logo ---------- */
+        body {
+            margin: 0;
+            background: #f4f6f9;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .cabecera-admin {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #ffffff;
+            border-bottom: 3px solid #005ea8;
+            padding: 14px 28px;
+            box-shadow: 0 1px 4px rgba(20, 30, 50, 0.08);
+        }
+
+        .cabecera-admin-marca {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .cabecera-admin-logo {
+            height: 38px;
+            width: auto;
+        }
+
+        .cabecera-admin-titulo {
+            font-size: 19px;
+            font-weight: 700;
+            color: #1F4E79;
+            line-height: 1.2;
+        }
+
+        .cabecera-admin-subtitulo {
+            font-size: 12.5px;
+            color: #7a828c;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        /* ---------- Navegacion por pestañas ---------- */
+        .tabs-nav {
+            display: flex;
+            gap: 4px;
+            background: #ffffff;
+            padding: 0 24px;
+            border-bottom: 1px solid #dde3ea;
+            overflow-x: auto;
+        }
+
+        .tab-boton {
+            border: none;
+            background: transparent;
+            padding: 13px 18px;
+            font-size: 14px;
+            font-weight: 600;
+            color: #66707c;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            white-space: nowrap;
+            transition: color .12s ease, border-color .12s ease, background .12s ease;
+        }
+
+        .tab-boton:hover {
+            color: #005ea8;
+            background: #f5f9fd;
+        }
+
+        .tab-boton.activo {
+            color: #005ea8;
+            border-bottom-color: #005ea8;
+        }
+
+        .tab-panel {
+            display: none;
+        }
+
+        .tab-panel.activo {
+            display: block;
+        }
+
+        .contenedor {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px 28px 60px 28px;
+        }
+
+        .contenedor section h2 {
+            color: #1F4E79;
+            font-size: 20px;
+            margin-top: 0;
+        }
     </style>
 </head>
 <body>
-    <div class="contenedor">
-        <h1>Administración</h1>
-
-        <div class="acciones-superiores">
-            <a class="btn-secundario" href="/">Ir al formulario</a>
+    <header class="cabecera-admin">
+        <div class="cabecera-admin-marca">
+            <img src="img/logo-endesa.png" alt="Logo Endesa" class="cabecera-admin-logo">
+            <div>
+                <div class="cabecera-admin-titulo">Acta Cero</div>
+                <div class="cabecera-admin-subtitulo">Administración</div>
+            </div>
         </div>
+        <a class="btn-secundario" href="/">Ir al formulario</a>
+    </header>
 
-        <section>
+    <nav class="tabs-nav">
+        <button type="button" class="tab-boton activo" data-tab="config" onclick="cambiarPestana('config')">Configuración</button>
+        <button type="button" class="tab-boton" data-tab="tecnicos" onclick="cambiarPestana('tecnicos')">Técnicos</button>
+        <button type="button" class="tab-boton" data-tab="firmantespo" onclick="cambiarPestana('firmantespo')">Firmantes P.O.</button>
+        <button type="button" class="tab-boton" data-tab="subestaciones" onclick="cambiarPestana('subestaciones')">Subestaciones</button>
+        <button type="button" class="tab-boton" data-tab="contratistas" onclick="cambiarPestana('contratistas')">Contratistas</button>
+    </nav>
+
+    <div class="contenedor">
+        <section class="tab-panel activo" data-tab="config">
             <h2>Configuración</h2>
 
             <div class="bloque-config">
-                <h3>Unidad solicitante</h3>
-                <div class="fila-admin">
-                    <input id="cfgUnidad" placeholder="Unidad solicitante">
-                </div>
-            </div>
-
-            <div class="bloque-config">
                 <h3>Jefe de Instalación</h3>
+                <p class="ayuda-seccion">No necesita firma propia: el acta siempre la firma el "P.O. del Jefe de la Instalación".</p>
                 <div class="fila-admin">
                     <input id="cfgJefeNombre" placeholder="Nombre del jefe">
-                    <input id="cfgJefeFirma" placeholder="Ruta firma jefe (ej: img/firma-jefe.png)">
-                </div>
-                <div class="campo-firma-acciones">
-                    <button type="button" class="btn-secundario" onclick="document.getElementById('cfgJefeFirmaArchivo').click()">Subir imagen</button>
-                    <input type="file" id="cfgJefeFirmaArchivo" accept="image/png,image/jpeg" hidden onchange="subirArchivoFirma(this, 'cfgJefeFirma')">
-                    <button type="button" class="btn-secundario" onclick="abrirModalFirma('cfgJefeFirma')">Firmar con lápiz</button>
-                </div>
-                <img id="cfgJefeFirmaPreview" class="firma-preview" alt="Vista previa firma jefe">
-                <div class="fila-check">
-                    <label class="check-label">
-                        <input type="checkbox" id="cfgJefeUsarFirma">
-                        Usar firma automática del jefe
-                    </label>
                 </div>
             </div>
 
@@ -346,12 +435,13 @@
             </div>
         </section>
 
-        <section>
+        <section class="tab-panel" data-tab="tecnicos">
             <h2>Técnicos solicitantes</h2>
 
             <div class="fila-admin">
                 <input id="nuevoTecnicoNombre" placeholder="Nombre del técnico">
                 <input id="nuevoTecnicoArea" placeholder="Área">
+                <input id="nuevoTecnicoCorreo" type="email" placeholder="Correo electrónico">
                 <input id="nuevoTecnicoFirma" placeholder="Ruta firma (ej: img/firma-arturo.png)">
             </div>
 
@@ -370,18 +460,21 @@
             </div>
 
             <div class="fila-admin">
-                <button type="button" onclick="crearTecnico()">Añadir técnico</button>
+                <button type="button" id="btnGuardarTecnico" onclick="guardarTecnico()">Añadir técnico</button>
+                <button type="button" id="btnCancelarEdicionTecnico" class="btn-secundario oculto" onclick="cancelarEdicionTecnico()">Cancelar</button>
             </div>
 
             <div id="listaTecnicos"></div>
         </section>
 
-        <section>
+        <section class="tab-panel" data-tab="firmantespo">
             <h2>Firmantes P.O.</h2>
             <p class="ayuda-seccion">Personas que pueden firmar "P.O. del Jefe de la Instalación". Se elige una de la lista al rellenar cada acta.</p>
 
             <div class="fila-admin">
                 <input id="nuevoFirmantePONombre" placeholder="Nombre del firmante P.O.">
+                <input id="nuevoFirmantePOArea" placeholder="Área" value="Subestaciones Sevilla">
+                <input id="nuevoFirmantePOCorreo" type="email" placeholder="Correo electrónico">
                 <input id="nuevoFirmantePOFirma" placeholder="Ruta firma (ej: img/firma-arturo.png)">
             </div>
 
@@ -407,7 +500,7 @@
             <div id="listaFirmantesPO"></div>
         </section>
 
-        <section>
+        <section class="tab-panel" data-tab="subestaciones">
             <div class="cabecera-seccion">
                 <h2>Subestaciones</h2>
                 <div class="acciones-inline">
@@ -430,7 +523,7 @@
             </div>
         </section>
 
-        <section>
+        <section class="tab-panel" data-tab="contratistas">
             <div class="cabecera-seccion">
                 <h2>Contratistas</h2>
                 <div class="acciones-inline">

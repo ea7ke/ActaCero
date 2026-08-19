@@ -7,9 +7,168 @@
     <script src="js/acta-archivo.js" defer></script>
     <script src="js/app.js" defer></script>
     <style>
+        body {
+            margin: 0;
+            background: #f4f6f9;
+            font-family: Arial, Helvetica, sans-serif;
+        }
+
+        .cabecera-app {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+            background: #ffffff;
+            border-bottom: 3px solid #005ea8;
+            padding: 14px 28px;
+            box-shadow: 0 1px 4px rgba(20, 30, 50, 0.08);
+        }
+
+        .cabecera-app-marca {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .cabecera-app-logo {
+            height: 38px;
+            width: auto;
+        }
+
+        .cabecera-app-titulo {
+            font-size: 19px;
+            font-weight: 700;
+            color: #1F4E79;
+            line-height: 1.2;
+        }
+
+        .cabecera-app-subtitulo {
+            font-size: 12.5px;
+            color: #7a828c;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .cabecera-app-acciones {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .contenedor {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 24px 20px 60px 20px;
+        }
+
+        .tarjeta-seccion {
+            background: #fff;
+            border: 1px solid #e2e5ea;
+            border-radius: 10px;
+            padding: 18px 22px;
+            margin-bottom: 18px;
+            box-shadow: 0 1px 3px rgba(20, 30, 50, 0.06);
+        }
+
+        .tarjeta-seccion h2 {
+            margin: 0 0 14px 0;
+            font-size: 16px;
+            color: #1F4E79;
+            border-bottom: 1px solid #eef1f5;
+            padding-bottom: 8px;
+        }
+
+        .fila {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .fila:last-child {
+            margin-bottom: 0;
+        }
+
+        .campo {
+            flex: 1 1 220px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .campo-ancho-completo {
+            flex-basis: 100%;
+        }
+
+        .campo label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #3a4149;
+        }
+
+        .campo input[type="text"],
+        .campo input[type="date"],
+        .campo input[type="email"],
+        .campo input:not([type]),
+        .campo select,
+        .campo textarea {
+            padding: 8px 10px;
+            border: 1px solid #cfd5db;
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            background: #fff;
+        }
+
+        .campo input[readonly] {
+            background: #f4f6f9;
+            color: #666;
+        }
+
+        .campo textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .btn-secundario {
+            display: inline-block;
+            background: #eef2f6;
+            color: #1F4E79;
+            border: 1px solid #d5dde5;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .btn-secundario:hover {
+            background: #e2e8ee;
+        }
+
+        .btn-principal {
+            display: block;
+            width: 100%;
+            background: #005ea8;
+            color: #fff;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 6px;
+        }
+
+        .btn-principal:hover {
+            background: #00447a;
+        }
+
         .multi-select-lista {
-            border: 1px solid #ccc;
-            border-radius: 4px;
+            border: 1px solid #cfd5db;
+            border-radius: 6px;
             padding: 6px 10px;
             max-height: 160px;
             overflow-y: auto;
@@ -23,6 +182,8 @@
             font-weight: normal;
             padding: 5px 2px;
             cursor: pointer;
+            font-size: 14px;
+            color: #222;
         }
 
         .multi-select-lista input[type="checkbox"] {
@@ -86,166 +247,187 @@
 </head>
 <body>
 
-<div class="contenedor">
+<header class="cabecera-app">
+    <div class="cabecera-app-marca">
+        <img src="img/logo-endesa.png" alt="Logo Endesa" class="cabecera-app-logo">
+        <div>
+            <div class="cabecera-app-titulo">Acta Cero</div>
+            <div class="cabecera-app-subtitulo">Nueva acta</div>
+        </div>
+    </div>
 
-    <h1>ACTA CERO</h1>
-
-    <div class="acciones-superiores">
+    <div class="cabecera-app-acciones">
         <a class="btn-secundario" href="/admin.html">Administración</a>
         <button type="button" class="btn-secundario" onclick="guardarActaArchivo()">Guardar acta</button>
         <button type="button" class="btn-secundario" onclick="document.getElementById('abrirActaInput').click()">Abrir acta</button>
-        <input type="file" id="abrirActaInput" accept="application/json,.json" hidden onchange="abrirActaArchivo(this)">
+        <input type="file" id="abrirActaInput" accept=".ac0,.acta,.json,application/json" hidden onchange="abrirActaArchivo(this)">
     </div>
+</header>
 
-    <div class="fila">
-        <div class="campo">
-            <label for="fecha">Fecha</label>
-            <input type="date" id="fecha">
-        </div>
+<div class="contenedor">
 
-        <div class="campo">
-            <label for="lcl">Nº LCL/OT/PLAN</label>
-            <input type="text" id="lcl">
-        </div>
-    </div>
+    <section class="tarjeta-seccion">
+        <h2>Datos generales</h2>
+        <div class="fila">
+            <div class="campo">
+                <label for="fecha">Fecha</label>
+                <input type="date" id="fecha">
+            </div>
 
-    <div class="fila">
-        <div class="campo">
-            <label for="fechaInicio">Fecha inicio del trabajo</label>
-            <input type="date" id="fechaInicio">
-        </div>
-
-        <div class="campo">
-            <label for="fechaFin">Fecha final del trabajo</label>
-            <input type="date" id="fechaFin">
-        </div>
-    </div>
-
-    <div class="fila">
-        <div class="campo">
-            <label for="subestacion">Subestación</label>
-            <select id="subestacion" onchange="cambiarSubestacion()">
-                <option value="">Seleccione...</option>
-            </select>
-        </div>
-
-        <div class="campo">
-            <label>Parque <span class="ayuda-campo">(puedes marcar varios)</span></label>
-            <div id="parque" class="multi-select-lista">
-                <div class="multi-select-vacio">Selecciona antes una subestación.</div>
+            <div class="campo">
+                <label for="lcl">Nº LCL/OT/PLAN</label>
+                <input type="text" id="lcl">
             </div>
         </div>
-    </div>
 
-    <div class="fila">
-        <div class="campo">
-            <label>Posición <span class="ayuda-campo">(puedes marcar varias)</span></label>
-            <div id="posicion" class="multi-select-lista">
-                <div class="multi-select-vacio">Selecciona antes una subestación.</div>
+        <div class="fila">
+            <div class="campo">
+                <label for="fechaInicio">Fecha inicio del trabajo</label>
+                <input type="date" id="fechaInicio">
+            </div>
+
+            <div class="campo">
+                <label for="fechaFin">Fecha final del trabajo</label>
+                <input type="date" id="fechaFin">
             </div>
         </div>
-    </div>
+    </section>
 
-    <div class="fila">
-        <div class="campo">
-            <label for="linea">Línea</label>
-            <input type="text" id="linea">
+    <section class="tarjeta-seccion">
+        <h2>Ubicación del trabajo</h2>
+        <div class="fila">
+            <div class="campo">
+                <label for="subestacion">Subestación</label>
+                <select id="subestacion" onchange="cambiarSubestacion()">
+                    <option value="">Seleccione...</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label>Parque <span class="ayuda-campo">(puedes marcar varios)</span></label>
+                <div id="parque" class="multi-select-lista">
+                    <div class="multi-select-vacio">Selecciona antes una subestación.</div>
+                </div>
+            </div>
         </div>
 
-        <div class="campo">
-            <label for="soporte">Soporte</label>
-            <input type="text" id="soporte">
-        </div>
-    </div>
-
-    <div class="fila">
-        <div class="campo">
-            <label for="apertura">Apertura</label>
-            <input type="text" id="apertura">
-        </div>
-    </div>
-
-    <div class="fila">
-        <div class="campo">
-            <label for="empresa">Empresa Contratista</label>
-            <select id="empresa" onchange="cambiarEmpresa()">
-                <option value="">Seleccione...</option>
-            </select>
+        <div class="fila">
+            <div class="campo">
+                <label>Posición <span class="ayuda-campo">(puedes marcar varias)</span></label>
+                <div id="posicion" class="multi-select-lista">
+                    <div class="multi-select-vacio">Selecciona antes una subestación.</div>
+                </div>
+            </div>
         </div>
 
-        <div class="campo">
-            <label for="representante">Representante</label>
-            <select id="representante" onchange="cambiarRepresentante()"></select>
-        </div>
-    </div>
+        <div class="fila">
+            <div class="campo">
+                <label for="linea">Línea</label>
+                <input type="text" id="linea">
+            </div>
 
-    <div class="fila">
-        <div class="campo">
-            <label for="tecnico">Técnico Unidad Solicitante</label>
-            <select id="tecnico" onchange="cambiarTecnico()">
-                <option value="">Seleccione...</option>
-            </select>
-        </div>
+            <div class="campo">
+                <label for="soporte">Soporte</label>
+                <input type="text" id="soporte">
+            </div>
 
-        <div class="campo">
-            <label for="areaTecnico">Área / Departamento</label>
-            <input id="areaTecnico" readonly>
-        </div>
-    </div>
-
-    <div class="fila">
-        <div class="campo">
-            <label for="jefeInstalacion">Jefe Instalación</label>
-            <input id="jefeInstalacion" readonly>
+            <div class="campo">
+                <label for="apertura">Apertura</label>
+                <input type="text" id="apertura">
+            </div>
         </div>
 
-        <div class="campo">
-            <label for="firmantePO">Firmante P.O. Jefe Instalación</label>
-            <select id="firmantePO" onchange="cambiarFirmantePO()">
-                <option value="">Seleccione...</option>
-            </select>
+        <div class="fila">
+            <div class="campo campo-ancho-completo">
+                <label for="trabajo">Trabajo</label>
+                <input type="text" id="trabajo">
+            </div>
         </div>
-    </div>
+    </section>
 
-    <input type="hidden" id="unidad">
+    <section class="tarjeta-seccion">
+        <h2>Personas y empresas</h2>
+        <div class="fila">
+            <div class="campo">
+                <label for="empresa">Empresa Contratista</label>
+                <select id="empresa" onchange="cambiarEmpresa()">
+                    <option value="">Seleccione...</option>
+                </select>
+            </div>
 
-    <div class="fila">
-        <div class="campo">
-            <label for="trabajo">Trabajo</label>
-            <textarea id="trabajo"></textarea>
+            <div class="campo">
+                <label for="representante">Representante</label>
+                <select id="representante" onchange="cambiarRepresentante()"></select>
+            </div>
         </div>
-    </div>
 
-    <div class="fila">
-        <div class="campo">
-            <label for="descripcion">Definición del Trabajo</label>
-            <textarea id="descripcion"></textarea>
+        <div class="fila">
+            <div class="campo">
+                <label for="tecnico">Técnico Unidad Solicitante</label>
+                <select id="tecnico" onchange="cambiarTecnico()">
+                    <option value="">Seleccione...</option>
+                </select>
+            </div>
+
+            <div class="campo">
+                <label for="areaTecnico">Área / Departamento</label>
+                <input id="areaTecnico" readonly>
+            </div>
         </div>
-    </div>
 
-    <div class="fila">
-        <div class="campo">
-            <label for="textoContratista">EMPRESA CONTRATISTA (Método de trabajo / recursos)</label>
-            <textarea id="textoContratista"></textarea>
+        <div class="fila">
+            <div class="campo">
+                <label for="jefeInstalacion">Jefe Instalación</label>
+                <input id="jefeInstalacion" readonly>
+            </div>
+
+            <div class="campo">
+                <label for="firmantePO">Firmante P.O. Jefe Instalación</label>
+                <select id="firmantePO" onchange="cambiarFirmantePO()">
+                    <option value="">Seleccione...</option>
+                </select>
+            </div>
         </div>
-    </div>
 
-    <div class="fila">
-        <div class="campo">
-            <label for="textoJI">Validación del Jefe de Instalación</label>
-            <textarea id="textoJI"></textarea>
+        <input type="hidden" id="unidad">
+    </section>
+
+    <section class="tarjeta-seccion">
+        <h2>Descripción del trabajo</h2>
+        <div class="fila">
+            <div class="campo">
+                <label for="descripcion">Definición del Trabajo</label>
+                <textarea id="descripcion"></textarea>
+            </div>
         </div>
-    </div>
 
-    <div class="fila">
-        <div class="campo">
-            <label for="imagenAdjunta">Imágenes adjuntas <span class="ayuda-campo">(opcional — cada una se añade como una hoja del acta)</span></label>
-            <input type="file" id="imagenAdjunta" accept="image/png,image/jpeg" multiple onchange="agregarImagenesAdjuntas(this)">
-            <div id="imagenesAdjuntasLista" class="imagenes-adjuntas-lista"></div>
+        <div class="fila">
+            <div class="campo">
+                <label for="textoContratista">EMPRESA CONTRATISTA (Método de trabajo / recursos)</label>
+                <textarea id="textoContratista"></textarea>
+            </div>
         </div>
-    </div>
 
-    <button type="button" onclick="generarActa()">Vista previa Acta</button>
+        <div class="fila">
+            <div class="campo">
+                <label for="textoJI">Validación del Jefe de Instalación</label>
+                <textarea id="textoJI"></textarea>
+            </div>
+        </div>
+    </section>
+
+    <section class="tarjeta-seccion">
+        <h2>Imágenes adjuntas</h2>
+        <div class="fila">
+            <div class="campo">
+                <label for="imagenAdjunta">Adjuntar imágenes <span class="ayuda-campo">(opcional — cada una se añade como una hoja del acta)</span></label>
+                <input type="file" id="imagenAdjunta" accept="image/png,image/jpeg" multiple onchange="agregarImagenesAdjuntas(this)">
+                <div id="imagenesAdjuntasLista" class="imagenes-adjuntas-lista"></div>
+            </div>
+        </div>
+    </section>
+
+    <button type="button" class="btn-principal" onclick="generarActa()">Vista previa Acta</button>
 
 </div>
 

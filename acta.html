@@ -11,6 +11,7 @@
 <div class="no-print">
     <button type="button" onclick="window.print()">Generar PDF</button>
     <button type="button" class="btn-secundario-pdf" onclick="guardarActaDesdeVista()">Guardar acta</button>
+    <button type="button" class="btn-secundario-pdf" onclick="enviarActaFirmadaPorCorreo()">Enviar PDF firmado</button>
 </div>
 
 <section class="pagina">
@@ -234,6 +235,13 @@
 
 <script>
 const datos = JSON.parse(localStorage.getItem("actaCero")) || {};
+
+// El diálogo "Guardar como PDF" del navegador usa el título de la página como
+// nombre de archivo sugerido, no nuestra función de nombres -- así que
+// ponemos aquí el mismo título que usaría "Guardar acta" (sin el .ac0),
+// para que generar el PDF (desde cualquiera de los dos botones) sugiera el
+// mismo nombre: Subestación_Posición.
+document.title = sugerirNombreArchivoActa(datos).replace(/\.ac0$/i, "");
 
 function poner(id, valor) {
     const elemento = document.getElementById(id);
@@ -552,6 +560,62 @@ function aplicarFirmaActa(rol, dataUrl, fechaIso, persistir) {
 
 async function guardarActaDesdeVista() {
     await descargarActaComoArchivo(datos, sugerirNombreArchivoActa(datos));
+}
+
+const ETIQUETAS_ROL = {
+    tecnico: "el Técnico Solicitante",
+    representante: "el Representante de la Contrata",
+    firmantePO: "el P.O. del Jefe de Instalación"
+};
+
+function nombresRolesFaltantes() {
+    return Object.keys(ROLES_FIRMA)
+        .filter(rol => !(datos.firmas && datos.firmas[rol] && datos.firmas[rol].dataUrl))
+        .map(rol => ROLES_FIRMA[rol].nombre || ETIQUETAS_ROL[rol] || rol);
+}
+
+function enviarActaFirmadaPorCorreo() {
+    if (!datos.tecnicoCorreo) {
+        alert(
+            "El técnico solicitante no tiene un correo electrónico configurado en Administración. " +
+            "Añádelo en su ficha de \"Técnicos solicitantes\" (o del firmante P.O., si actúa como solicitante) " +
+            "para poder usar esta opción."
+        );
+        return;
+    }
+
+    const faltan = nombresRolesFaltantes();
+    if (faltan.length) {
+        const seguir = confirm(
+            `Todavía falta firmar: ${faltan.join(", ")}.\n\n` +
+            `¿Quieres generar y enviar el PDF de todos modos?`
+        );
+        if (!seguir) return;
+    }
+
+    alert(
+        "A continuación se abrirá el cuadro de impresión: elige \"Guardar como PDF\" y guárdalo " +
+        "en tu ordenador. Cuando cierres ese cuadro, se abrirá tu correo para que adjuntes ese " +
+        "PDF y lo envíes."
+    );
+
+    window.print();
+
+    const referencia = [datos.subestacion, (datos.posicion || "").split(",")[0].trim()]
+        .filter(Boolean)
+        .join(" - ");
+
+    const asunto = `Acta firmada ${referencia || datos.lcl || ""}`.trim();
+    const cuerpo =
+        `Hola,\n\nAdjunto el acta firmada${referencia ? ` de ${referencia}` : ""}.\n\n` +
+        `Recuerda adjuntar manualmente el PDF que acabas de guardar, ya que el navegador no ` +
+        `permite adjuntarlo automáticamente.\n\nUn saludo.`;
+
+    const mailto = `mailto:${encodeURIComponent(datos.tecnicoCorreo)}` +
+        `?subject=${encodeURIComponent(asunto)}` +
+        `&body=${encodeURIComponent(cuerpo)}`;
+
+    window.location.href = mailto;
 }
 
 window.addEventListener("load", inicializarCanvasFirmaActa);

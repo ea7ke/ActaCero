@@ -64,6 +64,31 @@ set "VBS=%TEMP%\crear_acceso_directo_actacero.vbs"
 cscript //nologo "%VBS%" >nul
 del "%VBS%" >nul 2>nul
 
+REM Asociamos el mismo icono a los archivos .ac0 (las actas guardadas), para
+REM que se vean con el icono de Acta Cero en el Explorador. Esto NO hace que
+REM se abran solos al hacer doble clic (eso seguirá pidiendo elegir programa
+REM la primera vez) -- es solo el icono. Se escribe en HKEY_CURRENT_USER, así
+REM que no hace falta ser administrador.
+echo   Poniendo el icono de Acta Cero a los archivos .ac0...
+
+set "RUTA_ICONO=%CARPETA_INSTALACION%img\acta-cero.ico"
+set "RUTA_ICONO_REG=%RUTA_ICONO:\=\\%"
+set "REGFILE=%TEMP%\acta_cero_icono.reg"
+
+> "%REGFILE%" echo Windows Registry Editor Version 5.00
+>> "%REGFILE%" echo.
+>> "%REGFILE%" echo [HKEY_CURRENT_USER\Software\Classes\.ac0]
+>> "%REGFILE%" echo @="ActaCero.Archivo"
+>> "%REGFILE%" echo.
+>> "%REGFILE%" echo [HKEY_CURRENT_USER\Software\Classes\ActaCero.Archivo]
+>> "%REGFILE%" echo @="Archivo de Acta Cero"
+>> "%REGFILE%" echo.
+>> "%REGFILE%" echo [HKEY_CURRENT_USER\Software\Classes\ActaCero.Archivo\DefaultIcon]
+>> "%REGFILE%" echo @="%RUTA_ICONO_REG%"
+
+reg import "%REGFILE%" >nul 2>nul
+del "%REGFILE%" >nul 2>nul
+
 echo.
 echo   Instalacion completada. Se ha creado el icono "Acta Cero" en tu Escritorio.
 echo   La proxima vez, usa ese icono en vez de este archivo.
