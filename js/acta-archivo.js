@@ -11,12 +11,20 @@ const VERSION_FORMATO_ACTA = 1;
 
 function sugerirNombreArchivoActa(datos) {
     const limpiar = (texto) => String(texto).trim().replace(/[\\/:*?"<>|]+/g, "-");
-    const partes = ["Acta"];
+    const partes = [];
 
-    if (datos.lcl) partes.push(limpiar(datos.lcl));
-    if (datos.fecha) partes.push(datos.fecha);
+    if (datos.subestacion) {
+        partes.push(limpiar(datos.subestacion));
+    }
 
-    return `${partes.filter(Boolean).join("_") || "Acta"}.json`;
+    if (datos.posicion) {
+        // Puede haber varias posiciones separadas por coma; basta con la primera.
+        const primeraPosicion = datos.posicion.split(",")[0].trim();
+        if (primeraPosicion) partes.push(limpiar(primeraPosicion));
+    }
+
+    const nombre = partes.filter(Boolean).join("_") || "Acta";
+    return `${nombre}.json`;
 }
 
 async function descargarActaComoArchivo(datos, nombreSugerido) {

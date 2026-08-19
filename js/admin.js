@@ -2,10 +2,12 @@ let subestaciones = {};
 let contratistas = {};
 let configuracion = {};
 let tecnicos = [];
+let firmantesPO = [];
 
 let subestacionSeleccionada = null;
 let contratistaSeleccionado = null;
 let representanteEditando = null;
+let firmantePOEditando = null;
 
 window.addEventListener("load", async () => {
     await cargarTodo();
@@ -16,12 +18,15 @@ async function cargarTodo() {
         cargarConfiguracion(),
         cargarSubestaciones(),
         cargarContratistas(),
-        cargarTecnicos()
+        cargarTecnicos(),
+        cargarFirmantesPO()
     ]);
 
-    // El formulario de "nuevo técnico" es estático en el HTML (no se regenera),
-    // así que su vista previa de firma se inicializa aquí una sola vez.
+    // Los formularios de "nuevo técnico" y "nuevo firmante P.O." son
+    // estáticos en el HTML (no se regeneran), así que sus vistas previas de
+    // firma se inicializan aquí una sola vez.
     actualizarPreviewFirma("nuevoTecnicoFirma", "");
+    actualizarPreviewFirma("nuevoFirmantePOFirma", "");
 }
 
 async function cargarConfiguracion() {
@@ -31,7 +36,6 @@ async function cargarConfiguracion() {
         configuracion = await res.json();
 
         const jefe = configuracion.jefeInstalacion || {};
-        const firmantePO = configuracion.firmantePOJefe || {};
 
         document.getElementById("cfgUnidad").value = configuracion.unidadSolicitante || "";
 
@@ -39,11 +43,6 @@ async function cargarConfiguracion() {
         document.getElementById("cfgJefeFirma").value = jefe.firma || "";
         document.getElementById("cfgJefeUsarFirma").checked = !!jefe.usarFirma;
         mostrarPreviewExistente("cfgJefeFirma", jefe.firma);
-
-        document.getElementById("cfgFirmantePONombre").value = firmantePO.nombre || "";
-        document.getElementById("cfgFirmantePOFirma").value = firmantePO.firma || "";
-        document.getElementById("cfgFirmantePOUsarFirma").checked = !!firmantePO.usarFirma;
-        mostrarPreviewExistente("cfgFirmantePOFirma", firmantePO.firma);
     } catch (error) {
         console.error(error);
         alert(`No se pudo cargar la configuración: ${error.message}`);
@@ -57,11 +56,6 @@ async function guardarConfiguracion() {
             nombre: document.getElementById("cfgJefeNombre").value.trim(),
             firma: document.getElementById("cfgJefeFirma").value.trim(),
             usarFirma: document.getElementById("cfgJefeUsarFirma").checked
-        },
-        firmantePOJefe: {
-            nombre: document.getElementById("cfgFirmantePONombre").value.trim(),
-            firma: document.getElementById("cfgFirmantePOFirma").value.trim(),
-            usarFirma: document.getElementById("cfgFirmantePOUsarFirma").checked
         }
     };
 
@@ -94,6 +88,125 @@ async function cargarTecnicos() {
     } catch (error) {
         console.error(error);
         alert(`No se pudieron cargar los técnicos: ${error.message}`);
+    }
+}
+
+async function cargarFirmantesPO() {
+    try {
+        const res = await fetch("/api/firmantespo");
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        firmantesPO = await res.json();
+        renderFirmantesPO();
+    } catch (error) {
+        console.error(error);
+        alert(`No se pudieron cargar los firmantes P.O.: ${error.message}`);
+    }
+}
+
+function renderFirmantesPO() {
+    const contenedor = document.getElementById("listaFirmantesPO");
+    if (!contenedor) return;
+
+    if (!firmantesPO.length) {
+        contenedor.innerHTML = `<div class="detalle-vacio">No hay firmantes P.O.</div>`;
+        return;
+    }
+
+    contenedor.innerHTML = firmantesPO
+        .slice()
+        .sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""))
+        .map(f => `
+            <div class="card-admin">
+                <div class="card-header">
+                    <h3>${escapeHtml(f.nombre || "")}</h3>
+                    <div style="display:flex; gap:6px;">
+                        <button class="btn-secundario" type="button" onclick="editarFirmantePO('${escapeJs(f.id)}')">Editar</button>
+                        <button class="btn-peligro" type="button" onclick="eliminarFirmantePO('${escapeJs(f.id)}')">Eliminar</button>
+                    </div>
+                </div>
+                <div class="card-firma-thumb">
+                    <img src="${f.firma ? `/${escapeHtml(f.firma)}` : FIRMA_PLACEHOLDER}" alt="Firma de ${escapeHtml(f.nombre || "")}">
+                    <span class="estado-firma">${f.usarFirma ? '<span class="badge-si">Firma activa</span>' : '<span class="badge-no">Sin usar</span>'}</span>
+                </div>
+            </div>
+        `)
+        .join("");
+}
+
+async function guardarFirmantePO() {
+    const nombre = document.getElementById("nuevoFirmantePONombre").value.trim();
+    if (!nombre) return alert("Introduce un nombre.");
+
+    const firma = document.getElementById("nuevoFirmantePOFirma").value.trim();
+    const usarFirma = document.getElementById("nuevoFirmantePOUsarFirma").checked;
+
+    try {
+        const url = firmantePOEditando
+            ? `/api/firmantespo/${encodeURIComponent(firmantePOEditando)}`
+            : "/api/firmantespo";
+
+        const res = await fetch(url, {
+            method: firmantePOEditando ? "PUT" : "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ nombre, firma, usarFirma })
+        });
+
+        const json = await res.json();
+        if (!res.ok || !json.ok) throw new Error(json.error || "No se pudo guardar el firmante P.O.");
+
+        cancelarEdicionFirmantePO();
+        await cargarFirmantesPO();
+    } catch (error) {
+        alert(error.message);
+    }
+}
+
+function editarFirmantePO(id) {
+    const firmante = firmantesPO.find(f => f.id === id);
+    if (!firmante) return;
+
+    firmantePOEditando = id;
+
+    document.getElementById("nuevoFirmantePONombre").value = firmante.nombre || "";
+    document.getElementById("nuevoFirmantePOFirma").value = firmante.firma || "";
+    document.getElementById("nuevoFirmantePOUsarFirma").checked = !!firmante.usarFirma;
+    actualizarPreviewFirma("nuevoFirmantePOFirma", firmante.firma || "");
+
+    const boton = document.getElementById("btnGuardarFirmantePO");
+    if (boton) boton.textContent = "Guardar cambios";
+
+    const cancelar = document.getElementById("btnCancelarEdicionFirmantePO");
+    if (cancelar) cancelar.classList.remove("oculto");
+
+    document.getElementById("nuevoFirmantePONombre").scrollIntoView({ behavior: "smooth", block: "center" });
+}
+
+function cancelarEdicionFirmantePO() {
+    firmantePOEditando = null;
+
+    document.getElementById("nuevoFirmantePONombre").value = "";
+    document.getElementById("nuevoFirmantePOFirma").value = "";
+    document.getElementById("nuevoFirmantePOUsarFirma").checked = false;
+    actualizarPreviewFirma("nuevoFirmantePOFirma", "");
+
+    const boton = document.getElementById("btnGuardarFirmantePO");
+    if (boton) boton.textContent = "Añadir firmante P.O.";
+
+    const cancelar = document.getElementById("btnCancelarEdicionFirmantePO");
+    if (cancelar) cancelar.classList.add("oculto");
+}
+
+async function eliminarFirmantePO(id) {
+    if (!confirm("¿Eliminar este firmante P.O.?")) return;
+
+    try {
+        const res = await fetch(`/api/firmantespo/${encodeURIComponent(id)}`, { method: "DELETE" });
+        const json = await res.json();
+        if (!res.ok || !json.ok) throw new Error(json.error || "No se pudo eliminar");
+
+        await cargarFirmantesPO();
+    } catch (error) {
+        alert(error.message);
     }
 }
 
@@ -697,9 +810,9 @@ const FIRMA_PLACEHOLDER = "data:image/svg+xml;utf8," + encodeURIComponent(`
 // para marcarlo solo cuando corresponde al subir/dibujar una firma nueva.
 const CHECKBOX_USAR_FIRMA = {
     cfgJefeFirma: "cfgJefeUsarFirma",
-    cfgFirmantePOFirma: "cfgFirmantePOUsarFirma",
     nuevoTecnicoFirma: "nuevoTecnicoUsarFirma",
-    nuevoRepresentanteFirma: "nuevoRepresentanteUsarFirma"
+    nuevoRepresentanteFirma: "nuevoRepresentanteUsarFirma",
+    nuevoFirmantePOFirma: "nuevoFirmantePOUsarFirma"
 };
 
 // Punto único que decide qué se muestra en cada vista previa de firma:

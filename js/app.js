@@ -3,6 +3,8 @@ let contratistas = {};
 let tecnicos = [];
 let tecnicoSeleccionado = null;
 let representanteSeleccionado = null;
+let firmantesPO = [];
+let firmantePOSeleccionado = null;
 
 // Firmas ya capturadas en una sesión anterior (al abrir un acta guardada
 // que alguien ya empezó a firmar). Se reenvían tal cual al generar/guardar
@@ -37,13 +39,10 @@ window.addEventListener("load", async () => {
 
         const unidad = document.getElementById("unidad");
         const jefeInstalacion = document.getElementById("jefeInstalacion");
-        const firmantePODisplay = document.getElementById("firmantePODisplay");
         const jefeConfig = config.jefeInstalacion || {};
-        const firmantePOConfig = config.firmantePOJefe || {};
 
         if (unidad) unidad.value = config.unidadSolicitante || "";
         if (jefeInstalacion) jefeInstalacion.value = jefeConfig.nombre || "";
-        if (firmantePODisplay) firmantePODisplay.value = firmantePOConfig.nombre || "";
 
         const subRes = await fetch("/api/subestaciones");
         if (!subRes.ok) {
@@ -63,9 +62,16 @@ window.addEventListener("load", async () => {
         }
         tecnicos = await tecnicosRes.json();
 
+        const firmantesPORes = await fetch("/api/firmantespo");
+        if (!firmantesPORes.ok) {
+            throw new Error(`Firmantes P.O.: HTTP ${firmantesPORes.status}`);
+        }
+        firmantesPO = await firmantesPORes.json();
+
         cargarSubestaciones();
         cargarEmpresas();
         cargarTecnicos();
+        cargarFirmantesPO();
     } catch (error) {
         console.error("Error cargando datos iniciales:", error);
         alert(`No se pudieron cargar los datos iniciales: ${error.message}`);
@@ -119,6 +125,28 @@ function cargarTecnicos() {
             option.textContent = t.nombre;
             cboTecnico.appendChild(option);
         });
+}
+
+function cargarFirmantesPO() {
+    const cboFirmantePO = document.getElementById("firmantePO");
+    if (!cboFirmantePO) return;
+
+    cboFirmantePO.innerHTML = '<option value="">Seleccione...</option>';
+
+    firmantesPO
+        .slice()
+        .sort((a, b) => (a.nombre || "").localeCompare(b.nombre || ""))
+        .forEach(f => {
+            const option = document.createElement("option");
+            option.value = f.id;
+            option.textContent = f.nombre;
+            cboFirmantePO.appendChild(option);
+        });
+}
+
+function cambiarFirmantePO() {
+    const id = document.getElementById("firmantePO")?.value || "";
+    firmantePOSeleccionado = firmantesPO.find(f => f.id === id) || null;
 }
 
 function escapeHtmlTexto(texto) {
@@ -361,10 +389,9 @@ async function agregarImagenesAdjuntas(inputFile) {
 }
 
 async function construirDatosActa() {
-    const datosConfig = window.__configuracionActual || {};
-    const firmantePOConfig = datosConfig.firmantePOJefe || {};
     const tecnicoActual = tecnicoSeleccionado || {};
     const representanteActual = representanteSeleccionado || {};
+    const firmantePOActual = firmantePOSeleccionado || {};
 
     return {
         fecha: document.getElementById("fecha")?.value || "",
@@ -391,9 +418,9 @@ async function construirDatosActa() {
         textoContratista: document.getElementById("textoContratista")?.value || "",
         descripcion: document.getElementById("descripcion")?.value || "",
         textoJI: document.getElementById("textoJI")?.value || "",
-        firmantePOJefeNombre: firmantePOConfig.nombre || "",
-        firmantePOJefeFirma: firmantePOConfig.firma || "",
-        firmantePOJefeUsarFirma: !!firmantePOConfig.usarFirma,
+        firmantePOJefeNombre: firmantePOActual.nombre || "",
+        firmantePOJefeFirma: firmantePOActual.firma || "",
+        firmantePOJefeUsarFirma: !!firmantePOActual.usarFirma,
         imagenesAdjuntas: imagenesAdjuntasDatos.map(item => item.dataUrl),
         // Firmas ya realizadas (dibujadas o reutilizadas) en cualquier ordenador,
         // cada una con su fecha y hora. Se conservan al volver a guardar/generar.
@@ -489,6 +516,14 @@ function rellenarFormularioConActa(datos) {
     if (cboTecnico) {
         cboTecnico.value = tecnicoEncontrado ? tecnicoEncontrado.id : "";
         cambiarTecnico();
+    }
+
+    // Firmante P.O.: igual que el técnico, se busca por nombre.
+    const firmantePOEncontrado = firmantesPO.find(f => f.nombre === datos.firmantePOJefeNombre);
+    const cboFirmantePO = document.getElementById("firmantePO");
+    if (cboFirmantePO) {
+        cboFirmantePO.value = firmantePOEncontrado ? firmantePOEncontrado.id : "";
+        cambiarFirmantePO();
     }
 
     // Imágenes adjuntas: se restauran todas las que traiga el acta guardada.

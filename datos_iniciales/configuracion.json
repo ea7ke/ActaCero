@@ -1,0 +1,13 @@
+{
+  "unidadSolicitante": "",
+  "jefeInstalacion": {
+    "nombre": "",
+    "firma": "",
+    "usarFirma": false
+  },
+  "firmantePOJefe": {
+    "nombre": "",
+    "firma": "",
+    "usarFirma": false
+  }
+}

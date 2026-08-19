@@ -28,6 +28,7 @@ CONFIG_FILE = os.path.join(DATA_DIR, "configuracion.json")
 SUBESTACIONES_FILE = os.path.join(DATA_DIR, "subestaciones.json")
 CONTRATISTAS_FILE = os.path.join(DATA_DIR, "contratistas.json")
 TECNICOS_FILE = os.path.join(DATA_DIR, "tecnicos.json")
+FIRMANTESPO_FILE = os.path.join(DATA_DIR, "firmantespo.json")
 
 FIRMAS_DIR = os.path.join(BASE_DIR, "img", "firmas")
 EXTENSIONES_FIRMA_PERMITIDAS = {"png", "jpg", "jpeg"}
@@ -555,6 +556,107 @@ def delete_tecnico(tecnico_id):
         return jsonify({"ok": False, "error": "No existe el técnico"}), 404
 
     write_json(TECNICOS_FILE, nuevos)
+    return jsonify({"ok": True})
+
+
+# ---------------- FIRMANTES P.O. ----------------
+
+def slugificar(texto):
+    resultado = "".join(
+        c.lower() if c.isalnum() else "-"
+        for c in unquote(str(texto)).strip()
+    )
+    while "--" in resultado:
+        resultado = resultado.replace("--", "-")
+    return resultado.strip("-")
+
+
+@app.route("/api/firmantespo", methods=["GET"])
+def get_firmantespo():
+    if not os.path.exists(FIRMANTESPO_FILE):
+        # Migracion desde la version anterior, en la que solo existia UN
+        # firmante P.O. guardado en Configuracion. Si ya tenia nombre, se
+        # convierte en la primera entrada de la nueva lista, para no perder
+        # lo que ya hubiera configurado.
+        config = read_json(CONFIG_FILE, default={})
+        firmante_antiguo = (config.get("firmantePOJefe") or {})
+        nombre_antiguo = str(firmante_antiguo.get("nombre", "")).strip()
+
+        lista_inicial = []
+        if nombre_antiguo:
+            lista_inicial.append({
+                "id": slugificar(nombre_antiguo) or "firmante-po-1",
+                "nombre": nombre_antiguo,
+                "firma": str(firmante_antiguo.get("firma", "")).strip(),
+                "usarFirma": bool(firmante_antiguo.get("usarFirma", False))
+            })
+
+        write_json(FIRMANTESPO_FILE, lista_inicial)
+        return jsonify(lista_inicial)
+
+    return jsonify(read_json(FIRMANTESPO_FILE, default=[]))
+
+
+@app.route("/api/firmantespo", methods=["POST"])
+def add_firmantepo():
+    data = request.get_json(silent=True) or {}
+    firmantes = read_json(FIRMANTESPO_FILE, default=[])
+
+    nombre = str(data.get("nombre", "")).strip()
+    if not nombre:
+        return jsonify({"ok": False, "error": "Nombre obligatorio"}), 400
+
+    nuevo_id = slugificar(nombre)
+    if not nuevo_id or any(f.get("id") == nuevo_id for f in firmantes):
+        nuevo_id = f"{nuevo_id or 'firmante-po'}-{uuid.uuid4().hex[:6]}"
+
+    nuevo = {
+        "id": nuevo_id,
+        "nombre": nombre,
+        "firma": str(data.get("firma", "")).strip(),
+        "usarFirma": bool(data.get("usarFirma", False))
+    }
+
+    firmantes.append(nuevo)
+    write_json(FIRMANTESPO_FILE, firmantes)
+    return jsonify({"ok": True, "id": nuevo_id})
+
+
+@app.route("/api/firmantespo/<path:firmante_id>", methods=["PUT"])
+def update_firmantepo(firmante_id):
+    firmante_id = normalize_text(firmante_id)
+    data = request.get_json(silent=True) or {}
+    firmantes = read_json(FIRMANTESPO_FILE, default=[])
+
+    index = next((i for i, f in enumerate(firmantes) if f.get("id") == firmante_id), None)
+    if index is None:
+        return jsonify({"ok": False, "error": "No existe el firmante P.O."}), 404
+
+    nombre = str(data.get("nombre", "")).strip()
+    if not nombre:
+        return jsonify({"ok": False, "error": "Nombre obligatorio"}), 400
+
+    firmantes[index] = {
+        "id": firmante_id,
+        "nombre": nombre,
+        "firma": str(data.get("firma", "")).strip(),
+        "usarFirma": bool(data.get("usarFirma", False))
+    }
+
+    write_json(FIRMANTESPO_FILE, firmantes)
+    return jsonify({"ok": True})
+
+
+@app.route("/api/firmantespo/<path:firmante_id>", methods=["DELETE"])
+def delete_firmantepo(firmante_id):
+    firmante_id = normalize_text(firmante_id)
+    firmantes = read_json(FIRMANTESPO_FILE, default=[])
+
+    nuevos = [f for f in firmantes if f.get("id") != firmante_id]
+    if len(nuevos) == len(firmantes):
+        return jsonify({"ok": False, "error": "No existe el firmante P.O."}), 404
+
+    write_json(FIRMANTESPO_FILE, nuevos)
     return jsonify({"ok": True})
 
 

@@ -104,6 +104,19 @@ if "%PYCMD%"=="" (
     exit /b 1
 )
 
+REM Se fusionan los datos comunes "de fabrica" (tecnicos, subestaciones,
+REM contratistas) con los datos propios del usuario, sumando lo nuevo sin
+REM tocar nada de lo que ya hubiera en local. Es seguro ejecutarlo siempre,
+REM tanto en la primera instalacion como en cada arranque posterior.
+if not exist "datos_iniciales" (
+    echo.
+    echo   Aviso: no se encuentra la carpeta "datos_iniciales" junto al programa.
+    echo   No se cargaran tecnicos/subestaciones/contratistas de fabrica ^(el
+    echo   programa funcionara igualmente, solo que empezara sin esos datos^).
+) else (
+    %PYCMD% sincronizar_datos_iniciales.py
+)
+
 echo.
 echo   Comprobando dependencias necesarias, un momento...
 %PYCMD% -m pip install -r requirements.txt --quiet --disable-pip-version-check
