@@ -1,58 +1,16 @@
 [
   {
-    "id": "arturo-rivera-gallardo",
-    "nombre": "Arturo Rivera Gallardo",
+    "id": "tecnico-i-id",
+    "nombre": "Tecnico I Id",
     "firma": "",
     "usarFirma": false,
-    "area": "Subestaciones Sevilla"
+    "area": "Subestaciones Mundo"
   },
   {
-    "id": "sonia-lopez-gonzalez",
-    "nombre": "Sonia López González",
+    "id": "usuario-dos",
+    "nombre": "Usuario Dos",
     "firma": "",
     "usarFirma": false,
-    "area": "PM&C"
-  },
-  {
-    "id": "miguel-sanchez-fuentes",
-    "nombre": "Miguel Sánchez Fuentes",
-    "firma": "",
-    "usarFirma": false,
-    "area": "PM&C"
-  },
-  {
-    "id": "david-martin-gil",
-    "nombre": "David Martín Gil",
-    "firma": "",
-    "usarFirma": false,
-    "area": "PM&C"
-  },
-  {
-    "id": "mariola-ponce-rodriguez",
-    "nombre": "Mariola Ponce Rodriguez",
-    "firma": "",
-    "usarFirma": false,
-    "area": "PM&C"
-  },
-  {
-    "id": "nacho-aleman-anton",
-    "nombre": "Nacho Alemán Antón",
-    "firma": "",
-    "usarFirma": false,
-    "area": "PM&C"
-  },
-  {
-    "id": "francisco-javier-cebolla",
-    "nombre": "Francisco Javier Cebolla",
-    "firma": "",
-    "usarFirma": false,
-    "area": "PM&C"
-  },
-  {
-    "id": "julian-lucas-martinez",
-    "nombre": "Julián Lucas Martínez",
-    "firma": "",
-    "usarFirma": false,
-    "area": "PM&C"
+    "area": "Obras"
   }
 ]
